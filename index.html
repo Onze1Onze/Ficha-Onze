@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111318">
+  <meta name="description" content="Visualize sua ficha do Google Sheets dentro do Owlbear Rodeo.">
+  <title>Ficha Onze</title>
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Ficha Onze - início">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img">
+            <path d="M6 3.75h8.5L19 8.2v12.05H6z" />
+            <path d="M14.5 3.75V8.5H19M9 12h7M9 15.5h7M9 19h4" />
+          </svg>
+        </span>
+        <span>FICHA <strong>ONZE</strong></span>
+      </a>
+      <span class="connection"><i></i> EXTENSÃO OWLBEAR</span>
+    </header>
+
+    <section id="setupView" class="setup-view">
+      <div class="intro">
+        <p class="eyebrow">SUA FICHA, SEM SAIR DA MESA</p>
+        <h1>Abra sua ficha<br><span>no Owlbear.</span></h1>
+        <p class="intro-copy">Conecte uma planilha do Google Sheets e mantenha seus atributos, perícias e anotações sempre à mão durante a sessão.</p>
+        <div class="feature-line">
+          <span class="feature-icon" aria-hidden="true">↗</span>
+          <span>Visualização ampla e rolável</span>
+        </div>
+        <div class="feature-line">
+          <span class="feature-icon" aria-hidden="true">⌑</span>
+          <span>Seu link fica salvo neste navegador</span>
+        </div>
+      </div>
+
+      <form id="sheetForm" class="setup-card">
+        <div class="card-heading">
+          <span class="step-label">CONFIGURAÇÃO INICIAL</span>
+          <span class="step-number">01 / 01</span>
+        </div>
+        <h2>Vincular planilha</h2>
+        <p class="card-description">Cole o link da sua ficha do Google Sheets. Também aceitamos o código de incorporação fornecido pelo Google.</p>
+
+        <label for="sheetUrl">LINK DA PLANILHA</label>
+        <div class="input-wrap">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10.5 13.5 13.5 10.5M8 16l-1.5 1.5a4 4 0 0 1-5.65-5.65l4-4A4 4 0 0 1 10.5 8M16 8l1.5-1.5a4 4 0 0 1 5.65 5.65l-4 4A4 4 0 0 1 13.5 16" />
+          </svg>
+          <input id="sheetUrl" name="sheetUrl" type="url" inputmode="url" autocomplete="url" placeholder="https://docs.google.com/spreadsheets/d/..." required>
+        </div>
+        <p id="formError" class="form-error" role="alert" aria-live="polite"></p>
+        <button class="primary-button" type="submit">
+          <span>Salvar e abrir ficha</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+        </button>
+
+        <div class="setup-help">
+          <span class="help-icon">i</span>
+          <p>Para exibir a planilha aqui, publique-a no Google Sheets em <strong>Arquivo → Compartilhar → Publicar na web</strong>. Escolha a planilha inteira e confirme a publicação.</p>
+        </div>
+        <p class="privacy-note">O endereço é armazenado apenas no armazenamento local deste navegador. Ele não é enviado para outros jogadores.</p>
+      </form>
+    </section>
+
+    <section id="viewerView" class="viewer-view" hidden>
+      <div class="viewer-toolbar">
+        <div class="sheet-heading">
+          <span class="sheet-status"><i></i> FICHA CONECTADA</span>
+          <h1>Minha ficha</h1>
+        </div>
+        <div class="viewer-actions">
+          <button id="changeLinkButton" class="secondary-button" type="button" title="Trocar a planilha">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M7 4v6M17 14v6M4 17h16" /></svg>
+            <span>Trocar link</span>
+          </button>
+          <a id="openExternalLink" class="primary-button external-button" href="#" target="_blank" rel="noopener noreferrer">
+            <span>Abrir em nova aba</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" /></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="frame-shell">
+        <div id="frameLoading" class="frame-loading">
+          <span class="loader" aria-hidden="true"></span>
+          <span>Carregando sua ficha...</span>
+        </div>
+        <iframe id="sheetFrame" title="Ficha de personagem do Google Sheets" loading="eager" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+      </div>
+
+      <div class="viewer-footer">
+        <span>Se a ficha não aparecer, confirme se ela foi publicada na web nas configurações do Google Sheets.</span>
+        <button id="editUrlButton" type="button">Configurar novamente</button>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <span>FICHA ONZE <span class="footer-dot">•</span> FEITO PARA SUAS SESSÕES</span>
+      <span>GOOGLE SHEETS <span class="footer-dot">↗</span> OWLBEAR RODEO</span>
+    </footer>
+  </main>
+</body>
+</html>
