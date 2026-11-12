@@ -1,0 +1,16 @@
+{
+  "name": "Ficha Onze",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "Visualize sua ficha do Google Sheets dentro do Owlbear Rodeo.",
+  "author": "Onze1Onze",
+  "homepage_url": "https://github.com/Onze1Onze/Ficha-Onze",
+  "icon": "./icon.svg",
+  "action": {
+    "title": "Ficha Onze",
+    "icon": "./icon.svg",
+    "popover": "./index.html",
+    "width": 980,
+    "height": 780
+  }
+}
