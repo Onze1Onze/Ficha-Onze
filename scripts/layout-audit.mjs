@@ -158,11 +158,16 @@ try {
             box.top >= trayBox.top && box.bottom <= trayBox.bottom,
         };
       });
-      return { isCylinder: tray.classList.contains("is-revolver"), slots };
+      return {
+        isCylinder: tray.classList.contains("is-revolver"),
+        tray: { x: trayBox.x, y: trayBox.y, width: trayBox.width, height: trayBox.height },
+        slots,
+      };
     });
     assert.equal(cylinder.isCylinder, true, `Largura ${width}px: revólver sem layout de tambor`);
     assert.equal(cylinder.slots.length, 6);
-    assert.ok(cylinder.slots.every((slot) => slot.inside), `Largura ${width}px: câmara fora do tambor`);
+    assert.ok(cylinder.slots.every((slot) => slot.inside),
+      `Largura ${width}px: câmara fora do tambor; geometria=${JSON.stringify(cylinder)}`);
     const radii = cylinder.slots.map((slot) => slot.distance);
     assert.ok(Math.max(...radii) - Math.min(...radii) <= 2, `Largura ${width}px: câmaras não formam um círculo`);
     const angles = cylinder.slots.map((slot) => slot.angle).sort((a, b) => a - b);
