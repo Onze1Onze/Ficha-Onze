@@ -511,3 +511,13 @@ button:focus-visible, .ammo-tray:focus-visible { outline: 2px solid var(--accent
 .ammo-tray.is-revolver .ammo-slot:disabled {
   transform: translate(-50%, -50%) scale(.94);
 }
+
+
+/* Keep each chamber centered while its entrance animation runs. */
+.ammo-tray.is-revolver .ammo-slot {
+  animation-name: revolver-ammo-appear;
+}
+@keyframes revolver-ammo-appear {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.96); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}

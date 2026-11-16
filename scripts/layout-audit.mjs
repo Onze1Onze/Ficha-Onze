@@ -142,6 +142,7 @@ try {
 
     await page.locator('[data-weapon="revolver"]').click();
     assert.equal(await page.locator(".ammo-slot").count(), 6, `Largura ${width}px: capacidade do revólver`);
+    await page.waitForTimeout(220);
     const cylinder = await page.evaluate(() => {
       const tray = document.querySelector("#ammo-tray");
       const trayBox = tray.getBoundingClientRect();
