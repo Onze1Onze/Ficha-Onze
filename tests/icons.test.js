@@ -11,7 +11,7 @@ test("cada arma possui um SVG local, seguro e com viewport padronizado", async (
   for (const weapon of WEAPONS) {
     const path = resolve(process.cwd(), "assets", "weapons", `${weapon.id}.svg`);
     const svg = await readFile(path, "utf8");
-    const root = svg.match(/<svg\\b([^>]*)>/i)?.[1] ?? "";
+    const root = svg.match(/<svg\b([^>]*)>/i)?.[1] ?? "";
 
     assert.match(root, /width="160"/, `${weapon.id}: largura intrínseca deve ser 160`);
     assert.match(root, /height="80"/, `${weapon.id}: altura intrínseca deve ser 80`);
@@ -19,8 +19,8 @@ test("cada arma possui um SVG local, seguro e com viewport padronizado", async (
     assert.equal(viewBox, "0 0 160 80", `${weapon.id}: viewBox divergente`);
     viewports.add(viewBox);
 
-    assert.match(svg, /<(path|rect|circle|ellipse|polygon)\\b/i, `${weapon.id}: SVG sem geometria`);
-    assert.doesNotMatch(svg, /<script\\b|<foreignObject\\b|<image\\b|(?:href|src)="https?:/i,
+    assert.match(svg, /<(path|rect|circle|ellipse|polygon)\b/i, `${weapon.id}: SVG sem geometria`);
+    assert.doesNotMatch(svg, /<script\b|<foreignObject\b|<image\b|(?:href|src)="https?:/i,
       `${weapon.id}: SVG contém conteúdo executável ou dependência externa`);
   }
 
