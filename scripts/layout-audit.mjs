@@ -281,6 +281,53 @@ try {
   assert.equal(synced.revolverSpent[2], true, "A munição remota de outra arma precisa ser preservada");
   await syncPage.close();
   console.log("Sync race OK: clique local reaplicado sem apagar munição remota de outras armas.");
+
+  // Decode every local sound with Chromium's actual media decoder (without autoplay).
+  const decoderPage = await browser.newPage({ viewport: { width: 360, height: 820 } });
+  await decoderPage.route("https://esm.sh/**", (route) => route.fulfill({
+    status: 200,
+    contentType: "text/javascript",
+    body: "export default { isAvailable: false };",
+  }));
+  await decoderPage.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
+  const decodedSounds = await decoderPage.evaluate(async () => {
+    const filenames = [
+      "pistol-fire.wav", "pistol-reload.ogg",
+      "revolver-fire.wav", "revolver-reload.mp3",
+      "machinegun-fire.ogg", "machinegun-reload.ogg",
+      "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
+      "shotgun-fire.ogg", "shotgun-reload.ogg",
+      "smg-fire.ogg", "smg-reload.ogg",
+      "sniper-fire.ogg", "sniper-reload.ogg",
+      "hunting-rifle-fire.ogg", "hunting-rifle-reload.ogg",
+    ];
+    const context = new AudioContext();
+    const decoded = [];
+    try {
+      for (const filename of filenames) {
+        const response = await fetch(`./assets/audio/weapons/${filename}`);
+        if (!response.ok) throw new Error(`${filename}: HTTP ${response.status}`);
+        const bytes = await response.arrayBuffer();
+        const buffer = await context.decodeAudioData(bytes.slice(0));
+        decoded.push({
+          filename,
+          duration: buffer.duration,
+          channels: buffer.numberOfChannels,
+          sampleRate: buffer.sampleRate,
+        });
+      }
+    } finally {
+      await context.close();
+    }
+    return decoded;
+  });
+  assert.equal(decodedSounds.length, 16);
+  for (const sound of decodedSounds) {
+    assert.ok(sound.duration > 0.02, `${sound.filename}: áudio decodificado sem duração`);
+    assert.ok(sound.channels >= 1, `${sound.filename}: nenhum canal de áudio`);
+  }
+  await decoderPage.close();
+  console.log("Audio codec OK: Chromium decodificou os 16 efeitos locais.");
  } finally {
   if (browser) await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
