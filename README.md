@@ -32,11 +32,11 @@ Os efeitos de disparo são sintetizados localmente com Web Audio API e só come�
 
 ## Instalação
 
-Depois que o repositório estiver publicado, adicione este manifesto no gerenciador de extensões do Owlbear Rodeo:
+O site da extensão é publicado pelo GitHub Pages. Adicione este manifesto no gerenciador de extensões do Owlbear Rodeo:
 
 `https://raw.githubusercontent.com/Onze1Onze/Ficha-Onze/main/manifest.json`
 
-A página do popover e o ícone são servidos pelo jsDelivr a partir deste repositório. O manifesto aponta para esses caminhos de forma absoluta para não depender do diretório-base do iframe.
+A página do popover e o ícone são servidos por `https://onze1onze.github.io/Ficha-Onze/`. O manifesto aponta para URLs absolutas do Pages para não depender do diretório-base do iframe.
 
 ## Testes locais
 
