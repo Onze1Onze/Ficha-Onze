@@ -117,3 +117,22 @@ test("normalização limita os dados recebidos à capacidade real de cada carreg
   assert.equal(state.ammo.revolver.spent.length, 6);
   assert.equal(remainingAmmo(state, "revolver"), 6);
 });
+
+test("identificadores de arma inválidos nunca alteram o carregador da pistola", () => {
+  const initial = createInitialState();
+  const invalidRound = consumeRound(initial, "unknown-weapon", 0);
+  const invalidBurst = consumeBurst(initial, "unknown-weapon");
+  const invalidReload = reloadWeapon(initial, "unknown-weapon");
+
+  assert.deepEqual(invalidRound, initial);
+  assert.deepEqual(invalidBurst, initial);
+  assert.deepEqual(invalidReload, initial);
+  assert.equal(remainingAmmo(initial, "unknown-weapon"), 0);
+  assert.equal(canBurst(initial, "unknown-weapon"), false);
+});
+
+test("consultas seguras com estado ausente não lançam exceções", () => {
+  assert.equal(remainingAmmo(null), 0);
+  assert.equal(canBurst(null), false);
+  assert.deepEqual(consumeBurst(null), createInitialState());
+});
