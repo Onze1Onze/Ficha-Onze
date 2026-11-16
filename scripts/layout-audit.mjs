@@ -69,7 +69,8 @@ try {
         return {
           x: box.x, y: box.y, width: box.width, height: box.height,
           right: box.right, bottom: box.bottom,
-          icon: { width: iconBox.width, height: iconBox.height, complete: icon.complete, naturalWidth: icon.naturalWidth, naturalHeight: icon.naturalHeight },
+          icon: { x: iconBox.x, y: iconBox.y, right: iconBox.right, bottom: iconBox.bottom, width: iconBox.width, height: iconBox.height, complete: icon.complete, naturalWidth: icon.naturalWidth, naturalHeight: icon.naturalHeight },
+          name: (() => { const nameBox = element.querySelector(".weapon-name").getBoundingClientRect(); return { x: nameBox.x, y: nameBox.y, right: nameBox.right, bottom: nameBox.bottom, width: nameBox.width, height: nameBox.height }; })(),
         };
       });
       const gridBox = grid.getBoundingClientRect();
@@ -96,6 +97,10 @@ try {
       assert.ok(card.x >= initial.grid.x - 1 && card.right <= initial.grid.right + 1, `Largura ${width}px: cartão fora da bandeja`);
       assert.ok(card.icon.complete && card.icon.naturalWidth === 160 && card.icon.naturalHeight === 80, `Largura ${width}px: ícone não carregou em tamanho padronizado`);
       assert.ok(card.icon.width > 0 && card.icon.height > 0, `Largura ${width}px: ícone sem dimensões renderizadas`);
+      assert.ok(card.icon.x >= card.x && card.icon.right <= card.right, `Largura ${width}px: ícone fora do cartão`);
+      assert.ok(card.name.x >= card.x && card.name.right <= card.right, `Largura ${width}px: nome fora do cartão`);
+      assert.ok(card.icon.bottom <= card.name.y + 1 || card.icon.right <= card.name.x + 1,
+        `Largura ${width}px: ícone e nome sobrepostos`);
     }
     if (width <= 380) {
       const columns = new Set(initial.cards.map((card) => Math.round(card.x)));
