@@ -64,7 +64,9 @@ jobs:
           const localAssets = [
             ...[...html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g)].map((match) => match[1]),
             "./src/weapons.js",
-            "./src/sound.js"
+            "./src/sound.js",
+            ...["pistol", "revolver", "machinegun", "assault-rifle", "shotgun", "smg", "sniper", "hunting-rifle"]
+              .map((weapon) => `./assets/weapons/${weapon}.svg`)
           ];
           for (const asset of new Set(localAssets)) {
             await checkedFetch(new URL(asset, manifest.action.popover).href);
