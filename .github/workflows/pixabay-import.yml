@@ -1,0 +1,146 @@
+name: Import Pixabay weapon audio
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".pixabay-import.json"
+      - ".github/workflows/pixabay-import.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  import-audio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install Chromium
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+      - name: Download the three Pixabay previews
+        run: |
+          node --input-type=module <<'NODE'
+          import { chromium } from "playwright";
+          import { mkdir, writeFile } from "node:fs/promises";
+
+          const entries = [
+            {
+              name: "pistol-fire.mp3",
+              url: "https://pixabay.com/sound-effects/film-special-effects-pistol-shot-278821/"
+            },
+            {
+              name: "smg-fire.mp3",
+              url: "https://pixabay.com/sound-effects/film-special-effects-gunshot-smg-shot-5-203475/"
+            },
+            {
+              name: "hunting-rifle-fire.mp3",
+              url: "https://pixabay.com/sound-effects/film-special-effects-rifle-gun-shooting-391562/"
+            }
+          ];
+
+          const browser = await chromium.launch({ headless: true });
+          await mkdir("assets/audio/weapons", { recursive: true });
+
+          for (const entry of entries) {
+            const context = await browser.newContext({ acceptDownloads: true });
+            const page = await context.newPage();
+            const captured = [];
+            page.on("response", async (response) => {
+              const url = response.url();
+              const type = response.headers()["content-type"] ?? "";
+              if (response.status() !== 200) return;
+              if (!/audio|mpeg|octet-stream/i.test(type) && !/\.mp3(?:[?#]|$)/i.test(url)) return;
+              try {
+                const body = await response.body();
+                if (body.length > 2500) captured.push({ url, body });
+              } catch {}
+            });
+
+            console.log(`Opening ${entry.url}`);
+            await page.goto(entry.url, { waitUntil: "domcontentloaded", timeout: 60000 });
+            await page.waitForLoadState("networkidle", { timeout: 20000 }).catch(() => {});
+            await page.waitForTimeout(1800);
+
+            const inspect = async () => page.evaluate(() => ({
+              audio: [...document.querySelectorAll("audio, source")].map((element) => ({
+                src: element.currentSrc || element.src || element.getAttribute("src"),
+                type: element.getAttribute("type")
+              })).filter((item) => item.src),
+              media: performance.getEntriesByType("resource")
+                .map((item) => item.name)
+                .filter((name) => /\.mp3(?:[?#]|$)|cdn\.pixabay\.com\/audio/i.test(name))
+                .slice(-25),
+              buttons: [...document.querySelectorAll("button")].slice(0, 30).map((button) => ({
+                label: button.getAttribute("aria-label"),
+                title: button.getAttribute("title"),
+                text: (button.innerText || "").trim().slice(0, 60),
+                cls: String(button.className).slice(0, 100)
+              }))
+            }));
+
+            let details = await inspect();
+            for (const selector of [
+              'button[aria-label*="play" i]',
+              'button[title*="play" i]',
+              '[data-testid*="play" i]',
+              '[class*="play-button" i]',
+              'button[class*="play" i]'
+            ]) {
+              const locator = page.locator(selector).first();
+              if (await locator.count().catch(() => 0)) {
+                await locator.click({ timeout: 1500 }).catch(() => {});
+                await page.waitForTimeout(1100);
+                details = await inspect();
+                if (captured.length) break;
+              }
+            }
+
+            let audioBytes = captured.sort((a, b) => b.body.length - a.body.length)[0]?.body;
+            if (!audioBytes) {
+              for (const candidate of details.audio.map((item) => item.src).concat(details.media)) {
+                if (!candidate || !/^https?:/i.test(candidate)) continue;
+                const response = await context.request.get(candidate, {
+                  headers: { referer: entry.url },
+                  timeout: 20000
+                }).catch(() => null);
+                if (response?.ok()) {
+                  const body = await response.body();
+                  if (body.length > 2500) { audioBytes = body; break; }
+                }
+              }
+            }
+
+            if (!audioBytes || audioBytes.length < 2500) {
+              console.error("Audio element candidates:", JSON.stringify(details.audio));
+              console.error("Media resource candidates:", JSON.stringify(details.media));
+              console.error("Player buttons:", JSON.stringify(details.buttons));
+              console.error("Captured media responses:", captured.map((item) => ({ url: item.url, size: item.body.length })));
+              throw new Error(`Could not obtain the actual Pixabay MP3 for ${entry.name}`);
+            }
+
+            const isMp3 = (audioBytes.subarray(0, 3).toString() === "ID3")
+              || (audioBytes[0] === 0xff && (audioBytes[1] & 0xe0) === 0xe0);
+            if (!isMp3) throw new Error(`Downloaded bytes are not an MP3: ${entry.name}`);
+
+            const path = `assets/audio/weapons/${entry.name}`;
+            await writeFile(path, audioBytes);
+            console.log(`Saved ${path}: ${audioBytes.length} bytes`);
+            await context.close();
+          }
+
+          await browser.close();
+          NODE
+      - name: Commit downloaded assets
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/audio/weapons/pistol-fire.mp3 assets/audio/weapons/smg-fire.mp3 assets/audio/weapons/hunting-rifle-fire.mp3
+          git commit -m "Add weapon firing effects from Pixabay"
+          git push origin HEAD:main
