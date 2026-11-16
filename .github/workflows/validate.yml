@@ -21,8 +21,16 @@ jobs:
         with:
           node-version: 22
 
-      - name: Test ammunition logic
+      - name: Test ammunition logic and SVG assets
         run: npm test
+
+      - name: Install Chromium for responsive layout tests
+        run: |
+          npm install --no-save playwright
+          npx playwright install --with-deps chromium
+
+      - name: Test mobile and desktop layout geometry
+        run: npm run test:layout
 
       - name: Verify hosted extension resources
         run: |
