@@ -270,7 +270,7 @@ try {
     assert.ok(Math.max(...ammo.widths) - Math.min(...ammo.widths) <= 1, `Largura ${width}px: munições com larguras desalinhadas`);
     assert.ok(Math.max(...ammo.heights) - Math.min(...ammo.heights) <= 1, `Largura ${width}px: munições com alturas desalinhadas`);
     assert.ok(ammo.scrollHeight > ammo.clientHeight, `Largura ${width}px: carregador de 50 balas não ativa rolagem`);
-    if (width <= 380) assert.equal(ammo.columns, 6, `Largura ${width}px: grade de munição deve ter seis colunas`);
+    if (width <= 380) assert.equal(ammo.columns, 10, `Largura ${width}px: cinta da metralhadora deve ter dez colunas`);
 
     if (width === 360) {
       const audioPairs = [
