@@ -493,3 +493,21 @@ button:focus-visible, .ammo-tray:focus-visible { outline: 2px solid var(--accent
     transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-75px) rotate(calc(0deg - var(--slot-angle))) scale(1.04);
   }
 }
+
+
+/* Exact polar coordinates keep the six revolver chambers evenly spaced at every width. */
+.ammo-tray.is-revolver .ammo-slot {
+  left: var(--slot-x);
+  top: var(--slot-y);
+  transform: translate(-50%, -50%);
+}
+.ammo-tray.is-revolver .ammo-slot:hover:not(:disabled) {
+  transform: translate(-50%, -50%) scale(1.04);
+}
+.ammo-tray.is-revolver .ammo-slot:active:not(:disabled) {
+  transform: translate(-50%, -50%) scale(.92);
+}
+.ammo-tray.is-revolver .ammo-slot.is-spent,
+.ammo-tray.is-revolver .ammo-slot:disabled {
+  transform: translate(-50%, -50%) scale(.94);
+}
