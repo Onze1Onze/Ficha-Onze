@@ -35,15 +35,17 @@ jobs:
             try {
               const response = await fetch(url, { headers, redirect: "follow" });
               const html = await response.text();
-              const hits = [...html.matchAll(/https?:[^"'\\s<>]+(?:\\.mp3|cdn\\.pixabay\\.com\\/audio)[^"'\\s<>]*/gi)].map(match => match[0]).slice(0, 20);
+              const candidates = [...new Set(html.split(/["']/).filter((part) =>
+                part.startsWith("http") && (part.includes(".mp3") || part.includes("cdn.pixabay.com/audio"))
+              ))].slice(0, 20);
               console.log(JSON.stringify({
                 requested: url,
                 status: response.status,
                 finalUrl: response.url,
                 type: response.headers.get("content-type"),
                 bytes: html.length,
-                prefix: html.slice(0, 700).replace(/\\s+/g, " "),
-                audioUrls: hits
+                prefix: html.slice(0, 700).replaceAll("\n", " ").replaceAll("\r", " "),
+                audioUrls: candidates
               }));
             } catch (error) {
               console.log(JSON.stringify({ requested: url, error: String(error) }));
