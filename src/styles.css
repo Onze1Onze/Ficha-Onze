@@ -95,7 +95,8 @@ button { font: inherit; }
 }
 .weapon-card.is-selected::after { position: absolute; right: 0; bottom: 0; width: 13px; height: 2px; content: ""; background: var(--accent); }
 .weapon-icon { display: grid; width: 100%; height: 38px; place-items: center; }
-.weapon-svg { width: min(56px, 88%); height: 38px; overflow: visible; }
+.weapon-svg { width: min(68px, 100%); height: 38px; object-fit: contain; flex: 0 0 auto; filter: saturate(.42); transition: filter 150ms ease; }
+.weapon-card.is-selected .weapon-svg { filter: saturate(.8) brightness(1.16); }
 .weapon-name { width: 100%; color: inherit; font-size: 9px; font-weight: 750; line-height: 1.2; text-align: center; overflow-wrap: anywhere; }
 
 .ammo-section { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; gap: 9px; }
