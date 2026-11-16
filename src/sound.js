@@ -1,15 +1,23 @@
 let audioContext;
 
 function getAudioContext() {
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return null;
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
 
-  if (!audioContext) audioContext = new AudioContextClass();
-  if (audioContext.state === "suspended") {
-    // Called only inside a click handler, respecting browser autoplay policies.
-    audioContext.resume().catch(() => {});
+    if (!audioContext) audioContext = new AudioContextClass();
+    if (audioContext.state === "suspended") {
+      // Called only inside a click handler, respecting browser autoplay policies.
+      const resumeResult = audioContext.resume();
+      resumeResult?.catch(() => {});
+    }
+    return audioContext;
+  } catch (error) {
+    // Audio must never prevent ammunition from being consumed.
+    console.warn("Áudio indisponível neste navegador.", error);
+    audioContext = null;
+    return null;
   }
-  return audioContext;
 }
 
 function scheduleShot(context, startAt, intensity = 1) {
@@ -58,15 +66,23 @@ function scheduleShot(context, startAt, intensity = 1) {
 export function playShot() {
   const context = getAudioContext();
   if (!context) return;
-  scheduleShot(context, context.currentTime, 1);
+  try {
+    scheduleShot(context, context.currentTime, 1);
+  } catch (error) {
+    console.warn("Não foi possível reproduzir o efeito de disparo.", error);
+  }
 }
 
 export function playBurst() {
   const context = getAudioContext();
   if (!context) return;
-  const startAt = context.currentTime;
-  // A short, locally synthesised burst; it does not fetch or stream audio files.
-  for (let shot = 0; shot < 6; shot += 1) {
-    scheduleShot(context, startAt + shot * 0.072, 0.72);
+  try {
+    const startAt = context.currentTime;
+    // A short, locally synthesised burst; it does not fetch or stream audio files.
+    for (let shot = 0; shot < 6; shot += 1) {
+      scheduleShot(context, startAt + shot * 0.072, 0.72);
+    }
+  } catch (error) {
+    console.warn("Não foi possível reproduzir o efeito de rajada.", error);
   }
 }
