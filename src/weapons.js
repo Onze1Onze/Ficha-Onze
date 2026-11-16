@@ -1,12 +1,12 @@
 export const WEAPONS = Object.freeze([
-  { id: "pistol", name: "Pistola", capacity: 12, icon: "pistol", ammo: "pistol" },
-  { id: "revolver", name: "Revólver", capacity: 6, icon: "revolver", ammo: "revolver" },
-  { id: "machinegun", name: "Metralhadora", capacity: 50, icon: "machinegun", ammo: "heavy" },
-  { id: "assault-rifle", name: "Fuzil de Assalto", capacity: 30, icon: "assault", ammo: "rifle" },
-  { id: "shotgun", name: "Escopeta", capacity: 6, icon: "shotgun", ammo: "shell" },
-  { id: "smg", name: "Submetralhadora", capacity: 20, icon: "smg", ammo: "compact" },
-  { id: "sniper", name: "Fuzil de Precisão", capacity: 1, icon: "sniper", ammo: "precision" },
-  { id: "hunting-rifle", name: "Fuzil de Caça", capacity: 4, icon: "hunting", ammo: "hunting" },
+  { id: "pistol", name: "Pistola", capacity: 12, icon: "pistol", ammo: "pistol", layout: "double-stack" },
+  { id: "revolver", name: "Revólver", capacity: 6, icon: "revolver", ammo: "revolver", layout: "cylinder" },
+  { id: "machinegun", name: "Metralhadora", capacity: 50, icon: "machinegun", ammo: "heavy", layout: "belt" },
+  { id: "assault-rifle", name: "Fuzil de Assalto", capacity: 30, icon: "assault", ammo: "rifle", layout: "curved-magazine" },
+  { id: "shotgun", name: "Escopeta", capacity: 6, icon: "shotgun", ammo: "shell", layout: "shell-rack" },
+  { id: "smg", name: "Submetralhadora", capacity: 20, icon: "smg", ammo: "compact", layout: "compact-magazine" },
+  { id: "sniper", name: "Fuzil de Precisão", capacity: 1, icon: "sniper", ammo: "precision", layout: "single-round" },
+  { id: "hunting-rifle", name: "Fuzil de Caça", capacity: 4, icon: "hunting", ammo: "hunting", layout: "two-by-two" },
 ]);
 
 const WEAPON_IDS = new Set(WEAPONS.map((weapon) => weapon.id));

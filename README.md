@@ -21,7 +21,7 @@ A extensão usa o SDK oficial `@owlbear-rodeo/sdk` (versão 3.1.0). O estado do 
 
 Quando a página é aberta fora de uma sala do Owlbear Rodeo, funciona como prévia e salva o estado em `localStorage` deste navegador.
 
-Os ícones das oito armas são SVGs originais do projeto, armazenados localmente em `assets/weapons/`, com viewBox e dimensões intrínsecas padronizados (160 × 80). Há 16 efeitos de áudio locais em `assets/audio/weapons/`: um disparo e uma recarga próprios para cada arma. Os sons são pré-carregados sem autoplay e reproduzidos por um elemento de áudio novo, criado diretamente no clique para evitar falhas de clonagem em navegadores móveis. O revólver apresenta as seis munições em formato de tambor circular.
+Os ícones das oito armas são SVGs originais do projeto, armazenados localmente em `assets/weapons/`, com viewBox e dimensões intrínsecas padronizados (160 × 80). Há 16 efeitos de áudio locais em `assets/audio/weapons/`: um disparo e uma recarga próprios para cada arma. Os arquivos são pré-carregados e decodificados em buffers locais do Web Audio API, iniciados diretamente na interação do jogador; o elemento HTML de áudio permanece como alternativa para WebViews sem suporte ao decoder. Os disparos da pistola e do revólver usam WAV PCM mono para maior compatibilidade mobile. Cada arma apresenta um formato de carregador temático: pistola em pilha dupla, revólver em tambor circular compacto, metralhadora em cinta, fuzil de assalto em carregador curvo, escopeta em cartuchos, submetralhadora compacta, precisão em retículo e caça em arranjo 2×2.
 
 ## Regras
 

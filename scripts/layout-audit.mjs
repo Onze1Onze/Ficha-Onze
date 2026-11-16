@@ -128,7 +128,7 @@ try {
     await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "11");
     assert.equal(await page.locator('[data-ammo-index="3"]').isDisabled(), true,
       `Largura ${width}px: disparo individual não apagou a munição`);
-    assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), "pistol-fire.ogg",
+    assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), "pistol-fire.wav",
       `Largura ${width}px: o disparo da pistola precisa tocar o arquivo próprio`);
 
     // A sound playback failure must not prevent the ammunition action or local state update.
@@ -178,6 +178,53 @@ try {
     }
     assert.ok(Math.abs((angles[0] + 360 - angles.at(-1)) - 60) <= 5,
       `Largura ${width}px: intervalo de fechamento do tambor incorreto`);
+
+    const weaponLayouts = [
+      ["pistol", 12, "pistol"],
+      ["revolver", 6, "revolver"],
+      ["machinegun", 50, "machinegun"],
+      ["assault-rifle", 30, "assault-rifle"],
+      ["shotgun", 6, "shotgun"],
+      ["smg", 20, "smg"],
+      ["sniper", 1, "sniper"],
+      ["hunting-rifle", 4, "hunting-rifle"],
+    ];
+    for (const [weaponId, capacity, styleId] of weaponLayouts) {
+      await page.locator(`[data-weapon="${weaponId}"]`).click();
+      const trayState = await page.evaluate(() => {
+        const tray = document.querySelector("#ammo-tray");
+        const box = tray.getBoundingClientRect();
+        const action = document.querySelector(".action-bar").getBoundingClientRect();
+        const slots = [...tray.querySelectorAll(".ammo-slot")];
+        return {
+          styles: [...tray.classList],
+          dataWeapon: tray.dataset.weapon,
+          dataAmmoType: tray.dataset.ammoType,
+          count: slots.length,
+          iconKinds: [...new Set(slots.map((slot) => slot.dataset.ammoKind))],
+          trayBottom: box.bottom,
+          actionTop: action.top,
+          trayHeight: box.height,
+          scrollHeight: tray.scrollHeight,
+          clientHeight: tray.clientHeight,
+          borderRadius: getComputedStyle(tray).borderRadius,
+          firstSlot: slots[0]?.getBoundingClientRect().toJSON(),
+        };
+      });
+      assert.ok(trayState.styles.includes(`is-${styleId}`), `${weaponId}: layout temático não aplicado`);
+      assert.equal(trayState.dataWeapon, weaponId);
+      assert.equal(trayState.count, capacity, `${weaponId}: quantidade de munições incorreta`);
+      assert.equal(trayState.iconKinds.length, 1);
+      assert.ok(trayState.trayBottom <= trayState.actionTop + 1,
+        `Largura ${width}px: ${weaponId} sobrepõe os botões de ação`);
+      assert.ok(trayState.trayHeight > 0);
+      assert.ok(trayState.firstSlot.width > 0 && trayState.firstSlot.height > 0);
+      if (weaponId === "machinegun" || weaponId === "assault-rifle") {
+        assert.ok(trayState.scrollHeight >= trayState.clientHeight,
+          `${weaponId}: carregador precisa permanecer contido na bandeja escrolável`);
+      }
+    }
+
     await page.locator('[data-ammo-index="2"]').click();
     await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "5");
     await page.locator('[data-weapon="pistol"]').click();
@@ -226,8 +273,8 @@ try {
 
     if (width === 360) {
       const audioPairs = [
-        ["pistol", "pistol-fire.ogg", "pistol-reload.ogg"],
-        ["revolver", "revolver-fire.ogg", "revolver-reload.wav"],
+        ["pistol", "pistol-fire.wav", "pistol-reload.ogg"],
+        ["revolver", "revolver-fire.wav", "revolver-reload.wav"],
         ["machinegun", "machinegun-fire.ogg", "machinegun-reload.ogg"],
         ["assault-rifle", "assault-rifle-fire.ogg", "assault-rifle-reload.ogg"],
         ["shotgun", "shotgun-fire.ogg", "shotgun-reload.ogg"],
@@ -328,8 +375,8 @@ try {
   await decoderPage.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
   const decodedSounds = await decoderPage.evaluate(async () => {
     const filenames = [
-      "pistol-fire.ogg", "pistol-reload.ogg",
-      "revolver-fire.ogg", "revolver-reload.wav",
+      "pistol-fire.wav", "pistol-reload.ogg",
+      "revolver-fire.wav", "revolver-reload.wav",
       "machinegun-fire.ogg", "machinegun-reload.ogg",
       "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
       "shotgun-fire.ogg", "shotgun-reload.ogg",

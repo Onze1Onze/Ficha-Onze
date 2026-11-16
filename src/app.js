@@ -11,6 +11,7 @@ import {
   reloadWeapon,
   selectWeapon,
 } from "./weapons.js";
+import { AMMO_SVGS } from "./ammunition.js";
 import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js";
 
 const METADATA_KEY = "com.onze1.ficha-onze.weapon-ammo";
@@ -39,16 +40,7 @@ let isReloadAnimating = false;
 let isConnectingOwlbear = false;
 let pendingLocalOperations = [];
 
-const AMMO_SVGS = {
-  pistol: `<path d="M12 2.5c-3.7 4-5.5 7-5.5 10.2 0 3.3 2.4 5.4 5.5 5.4s5.5-2.1 5.5-5.4C17.5 9.5 15.7 6.5 12 2.5Z"/><path d="M7 15.3h10v4.2H7Z"/>`,
-  revolver: `<path d="M12 2.5c-3.1 3.4-4.8 6.3-4.8 9.2 0 3.4 2.1 5.6 4.8 5.6s4.8-2.2 4.8-5.6c0-2.9-1.7-5.8-4.8-9.2Z"/><path d="M7.2 14.6h9.6v4.9H7.2Z"/>`,
-  heavy: `<path d="M12 1.5c-2.8 3.8-4.7 7-4.7 10.1 0 3.4 2.1 5.3 4.7 5.3s4.7-1.9 4.7-5.3c0-3.1-1.9-6.3-4.7-10.1Z"/><path d="M7.3 13.9h9.4v6.1H7.3Z"/><path d="M9 18h6"/>`,
-  rifle: `<path d="M12 1.5c-3.3 4.2-5 7.3-5 10.3 0 3.4 2.2 5.4 5 5.4s5-2 5-5.4c0-3-1.7-6.1-5-10.3Z"/><path d="M7 14h10v5.5H7Z"/>`,
-  shell: `<path d="M7 4h10v12.5c0 2.1-2.2 3.5-5 3.5s-5-1.4-5-3.5Z"/><path d="M7 6h10M8 16h8"/><path d="M8.5 4V2.5h7V4"/>`,
-  compact: `<path d="M12 3c-3.2 3.8-4.7 6.6-4.7 9.2 0 3.1 2 5 4.7 5s4.7-1.9 4.7-5C16.7 9.6 15.2 6.8 12 3Z"/><path d="M7.3 14.2h9.4v5H7.3Z"/>`,
-  precision: `<path d="M12 1c-2.8 4.4-4.5 8.1-4.5 11.3 0 3.3 1.9 5.3 4.5 5.3s4.5-2 4.5-5.3C16.5 9.1 14.8 5.4 12 1Z"/><path d="M7.5 14h9v6h-9Z"/>`,
-  hunting: `<path d="M12 2c-3.1 4-4.8 7-4.8 10 0 3.2 2.1 5.2 4.8 5.2s4.8-2 4.8-5.2c0-3-1.7-6-4.8-10Z"/><path d="M7.2 14h9.6v5.7H7.2Z"/><path d="M9 17.5h6"/>`,
-};
+
 
 function renderWeaponCards() {
   elements.weaponGrid.innerHTML = WEAPONS.map((weapon) => {
@@ -67,22 +59,29 @@ function renderAmmo() {
   const spent = state.ammo[weapon.id].spent;
   const isRevolver = weapon.id === "revolver";
 
-  elements.ammoTray.classList.toggle("is-revolver", isRevolver);
+  for (const item of WEAPONS) {
+    elements.ammoTray.classList.toggle(`is-${item.id}`, item.id === weapon.id);
+  }
+  elements.ammoTray.dataset.weapon = weapon.id;
+  elements.ammoTray.dataset.ammoType = weapon.ammo;
+  elements.ammoTray.setAttribute("aria-label", `Carregador de ${weapon.name}`);
+
   elements.ammoTray.innerHTML = spent.map((isSpent, index) => {
     const angle = (index * 60 - 90) * Math.PI / 180;
-    const ringX = 50 + Math.cos(angle) * 32.5;
-    const ringY = 50 + Math.sin(angle) * 32.5;
+    const ringX = 50 + Math.cos(angle) * 33.5;
+    const ringY = 50 + Math.sin(angle) * 33.5;
     const positionStyle = isRevolver
-      ? `style="--slot-x: ${ringX.toFixed(3)}%; --slot-y: ${ringY.toFixed(3)}%;"`
+      ? `--slot-x: ${ringX.toFixed(3)}%; --slot-y: ${ringY.toFixed(3)}%;`
       : "";
     return `
-    <button class="ammo-slot${isSpent ? " is-spent" : ""}${isRevolver ? " is-revolver-slot" : ""}" type="button"
-      data-ammo-index="${index}" ${isSpent ? "disabled" : ""}
-      ${positionStyle}
+    <button class="ammo-slot${isSpent ? " is-spent" : ""}" type="button"
+      data-ammo-index="${index}" data-ammo-kind="${weapon.ammo}"
+      ${isSpent ? "disabled" : ""}
+      style="--ammo-order: ${index}; ${positionStyle}"
       aria-label="${isRevolver ? "Câmara" : "Munição"} ${index + 1}, ${isSpent ? "disparada" : "disponível"}"
       title="${isRevolver ? "Câmara" : "Munição"} ${index + 1}">
-      <svg class="ammo-svg" viewBox="0 0 24 22" aria-hidden="true" focusable="false">
-        <g fill="currentColor" stroke="currentColor" stroke-width="0.6" stroke-linejoin="round">${AMMO_SVGS[weapon.ammo]}</g>
+      <svg class="ammo-svg" viewBox="0 0 24 30" aria-hidden="true" focusable="false">
+        <g fill="currentColor" stroke="currentColor" stroke-width="0.65" stroke-linejoin="round" stroke-linecap="round">${AMMO_SVGS[weapon.ammo]}</g>
       </svg>
       <span class="ammo-index">${String(index + 1).padStart(2, "0")}</span>
     </button>`;
@@ -173,6 +172,10 @@ function handleAmmoClick(event) {
   if (remainingAmmo(next, weapon.id) === remainingAmmo(state, weapon.id)) return;
 
   playWeaponShot(weapon.id);
+  elements.ammoTray.classList.remove("is-firing");
+  void elements.ammoTray.offsetWidth;
+  elements.ammoTray.classList.add("is-firing");
+  window.setTimeout(() => elements.ammoTray.classList.remove("is-firing"), 280);
   updateState(next, `Disparo. ${remainingAmmo(next, weapon.id)} munições restantes.`, {
     type: "consume", weaponId: weapon.id, index,
   });
@@ -186,6 +189,10 @@ function handleBurst() {
 
   const next = consumeBurst(state, weapon.id);
   playBurst();
+  elements.burstButton.classList.remove("is-animating");
+  void elements.burstButton.offsetWidth;
+  elements.burstButton.classList.add("is-animating");
+  window.setTimeout(() => elements.burstButton.classList.remove("is-animating"), 540);
   updateState(next, `Disparada: 10 munições consumidas. ${remainingAmmo(next, weapon.id)} restantes.`, {
     type: "burst", weaponId: weapon.id,
   });
@@ -201,6 +208,9 @@ function handleReload() {
 
   isReloadAnimating = true;
   playWeaponReload(weapon.id);
+  elements.reloadButton.classList.remove("is-animating");
+  void elements.reloadButton.offsetWidth;
+  elements.reloadButton.classList.add("is-animating");
   const next = reloadWeapon(state, weapon.id);
   updateState(next, `${weapon.name} recarregada.`, { type: "reload", weaponId: weapon.id });
   elements.ammoTray.classList.remove("is-reloading");
@@ -210,6 +220,7 @@ function handleReload() {
   window.setTimeout(() => {
     isReloadAnimating = false;
     elements.ammoTray.classList.remove("is-reloading");
+    elements.reloadButton.classList.remove("is-animating");
     renderAmmo();
   }, 620);
 }

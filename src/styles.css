@@ -521,3 +521,370 @@ button:focus-visible, .ammo-tray:focus-visible { outline: 2px solid var(--accent
   from { opacity: 0; transform: translate(-50%, -50%) scale(.96); }
   to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
+
+
+/* -------------------------------------------------------------------------
+   Arsenal v2 — distinct cartridge layouts, compact cylinder and tactile UI.
+   ------------------------------------------------------------------------- */
+
+/* Every weapon gets its own magazine silhouette and cartridge treatment. */
+.ammo-tray {
+  transition: border-color 220ms ease, background 260ms ease, box-shadow 260ms ease;
+}
+.ammo-slot {
+  width: 100%;
+  min-width: 0;
+  height: 35px;
+  animation-delay: calc(var(--ammo-order, 0) * 9ms);
+  transform-origin: center;
+  will-change: transform, opacity, filter;
+}
+.ammo-svg {
+  width: 19px;
+  height: 25px;
+  filter: drop-shadow(0 1px 1px rgba(0,0,0,.45));
+}
+.ammo-slot::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(224,242,190,.24), transparent 68%);
+  transition: opacity 160ms ease;
+}
+.ammo-slot:hover:not(:disabled)::after { opacity: 1; }
+.ammo-slot:focus-visible { outline: 2px solid #d5e9b2; outline-offset: 2px; z-index: 3; }
+
+/* PISTOL — double-column staggered 9 mm magazine. */
+.ammo-tray.is-pistol {
+  flex: 0 0 91px;
+  min-height: 91px;
+  max-height: 91px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: 34px;
+  gap: 5px 4px;
+  padding: 7px 9px;
+  border-color: #62563c;
+  background:
+    linear-gradient(90deg, transparent 49.3%, rgba(198,164,94,.17) 50%, transparent 50.7%),
+    linear-gradient(180deg, rgba(78,65,42,.23), rgba(20,27,22,.95));
+  box-shadow: inset 0 0 0 3px rgba(185,151,86,.055);
+}
+.ammo-tray.is-pistol .ammo-slot {
+  height: 33px;
+  max-width: 31px;
+  border-radius: 4px 4px 9px 9px;
+  color: #d8bd7e;
+  border-color: #655a3f;
+  background: linear-gradient(160deg,#514630,#29271f);
+}
+.ammo-tray.is-pistol .ammo-svg { width: 15px; height: 22px; }
+
+/* REVOLVER — compact six-chamber cylinder, never competes with action buttons. */
+.ammo-tray.is-revolver {
+  position: relative;
+  display: block;
+  flex: 0 0 136px;
+  width: 136px;
+  height: 136px;
+  min-height: 136px;
+  max-height: 136px;
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #796c50;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #1b221c 0 23%, #927c4c 23.5% 25.5%, #414538 26% 57%, #202820 58% 100%);
+  box-shadow: inset 0 0 0 5px rgba(192,165,104,.12), inset 0 0 0 7px rgba(6,10,7,.7);
+}
+.ammo-tray.is-revolver::before {
+  content: "";
+  position: absolute;
+  inset: 28px;
+  border: 1px solid rgba(207,188,134,.34);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 4px rgba(6,10,7,.22);
+  pointer-events: none;
+}
+.ammo-tray.is-revolver::after {
+  content: "TAMBOR";
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%,-50%);
+  color: rgba(219,206,166,.55);
+  font: 800 7px/1 ui-monospace,monospace;
+  letter-spacing: .16em;
+  pointer-events: none;
+}
+.ammo-tray.is-revolver .ammo-slot {
+  position: absolute;
+  left: var(--slot-x);
+  top: var(--slot-y);
+  width: 30px;
+  height: 34px;
+  padding: 1px 0;
+  border-radius: 50%;
+  transform: translate(-50%,-50%);
+  color: #dec48a;
+  border-color: #9a895b;
+  background: radial-gradient(circle at 35% 28%,#5e5942,#272b23 76%);
+  box-shadow: inset 0 0 0 2px rgba(0,0,0,.26), 0 1px 3px rgba(0,0,0,.4);
+  animation-name: cylinder-chamber-in;
+}
+.ammo-tray.is-revolver .ammo-svg { width: 15px; height: 20px; }
+.ammo-tray.is-revolver .ammo-index { font-size: 5px; }
+.ammo-tray.is-revolver .ammo-slot:hover:not(:disabled) {
+  transform: translate(-50%,-50%) scale(1.08);
+  border-color: #f0d79a;
+}
+.ammo-tray.is-revolver .ammo-slot:active:not(:disabled) {
+  transform: translate(-50%,-50%) scale(.9);
+}
+.ammo-tray.is-revolver .ammo-slot.is-spent {
+  background: radial-gradient(circle,#252923,#151a16);
+  border-color: #484d41;
+}
+@keyframes cylinder-chamber-in {
+  from { opacity: 0; transform: translate(-50%,-50%) scale(.72) rotate(-18deg); }
+  to { opacity: 1; transform: translate(-50%,-50%) scale(1) rotate(0); }
+}
+
+/* MACHINE GUN — linked ammunition belt, ten columns with a visible belt rail. */
+.ammo-tray.is-machinegun {
+  flex: 0 1 156px;
+  min-height: 108px;
+  max-height: 156px;
+  grid-template-columns: repeat(10,minmax(0,1fr));
+  grid-auto-rows: 27px;
+  gap: 4px 2px;
+  padding: 8px 7px;
+  border-color: #766342;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 29px, rgba(193,164,99,.16) 29px 32px),
+    linear-gradient(180deg,#302b1e,#171d19);
+}
+.ammo-tray.is-machinegun .ammo-slot {
+  width: min(100%,21px);
+  height: 26px;
+  border-radius: 3px 3px 6px 6px;
+  color: #dec58a;
+  border-color: #806e42;
+  background: linear-gradient(90deg,#4b462e,#282a20);
+}
+.ammo-tray.is-machinegun .ammo-svg { width: 12px; height: 19px; }
+
+/* ASSAULT RIFLE — six rows of intermediate rifle cartridges in a curved-magazine panel. */
+.ammo-tray.is-assault-rifle {
+  flex: 0 1 154px;
+  min-height: 112px;
+  max-height: 154px;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  grid-auto-rows: 30px;
+  gap: 5px 4px;
+  padding: 8px 10px;
+  border-color: #4d684d;
+  border-radius: 12px 5px 12px 5px;
+  background:
+    linear-gradient(90deg,rgba(123,154,95,.14),transparent 24%,transparent 75%,rgba(123,154,95,.12)),
+    linear-gradient(180deg,#202c22,#151d18);
+}
+.ammo-tray.is-assault-rifle .ammo-slot {
+  width: min(100%,28px);
+  height: 29px;
+  border-radius: 5px 5px 9px 9px;
+  color: #bfce9b;
+  border-color: #516c4e;
+  background: linear-gradient(155deg,#394a35,#202a20);
+}
+.ammo-tray.is-assault-rifle .ammo-svg { width: 15px; height: 22px; }
+
+/* SHOTGUN — six long shells, in two rows of three. */
+.ammo-tray.is-shotgun {
+  flex: 0 1 126px;
+  min-height: 108px;
+  max-height: 126px;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  grid-auto-rows: 49px;
+  gap: 5px 7px;
+  padding: 8px 12px;
+  border-color: #785448;
+  background: linear-gradient(180deg,#342721,#171d19);
+  box-shadow: inset 0 0 0 4px rgba(153,92,65,.08);
+}
+.ammo-tray.is-shotgun .ammo-slot {
+  width: min(100%,39px);
+  height: 47px;
+  border-radius: 5px 5px 8px 8px;
+  color: #d58b69;
+  border-color: #916148;
+  background: linear-gradient(90deg,#653d30,#392a22);
+}
+.ammo-tray.is-shotgun .ammo-svg { width: 20px; height: 31px; }
+
+/* SMG — short compact rounds in a dense four-row tray. */
+.ammo-tray.is-smg {
+  flex: 0 1 142px;
+  min-height: 108px;
+  max-height: 142px;
+  grid-template-columns: repeat(5,minmax(0,1fr));
+  grid-auto-rows: 31px;
+  gap: 4px;
+  padding: 8px;
+  border-color: #46685f;
+  background:
+    repeating-linear-gradient(90deg,rgba(90,145,127,.06) 0 1px,transparent 1px 25%),
+    linear-gradient(180deg,#1b2b27,#141d1a);
+}
+.ammo-tray.is-smg .ammo-slot {
+  width: min(100%,28px);
+  height: 30px;
+  border-radius: 4px 4px 7px 7px;
+  color: #a9d0bd;
+  border-color: #4b7767;
+  background: linear-gradient(145deg,#2c4b40,#1d2d28);
+}
+.ammo-tray.is-smg .ammo-svg { width: 14px; height: 20px; }
+
+/* SNIPER — one oversized precision cartridge inside a scope reticle. */
+.ammo-tray.is-sniper {
+  position: relative;
+  display: flex;
+  flex: 0 0 110px;
+  height: 110px;
+  min-height: 110px;
+  max-height: 110px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border-color: #60755e;
+  background: radial-gradient(circle,#263329 0 30%,#1a221c 31% 68%,#131a15 69% 100%);
+}
+.ammo-tray.is-sniper::before {
+  content: "";
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(183,207,157,.34);
+  border-radius: 50%;
+  background:
+    linear-gradient(90deg,transparent calc(50% - .5px),rgba(183,207,157,.24) 50%,transparent calc(50% + .5px)),
+    linear-gradient(0deg,transparent calc(50% - .5px),rgba(183,207,157,.24) 50%,transparent calc(50% + .5px));
+  pointer-events: none;
+}
+.ammo-tray.is-sniper .ammo-slot {
+  z-index: 1;
+  width: 48px;
+  height: 72px;
+  border-radius: 7px 7px 12px 12px;
+  color: #d6dfb8;
+  border-color: #82936d;
+  background: linear-gradient(90deg,#394a35,#1f2a20);
+}
+.ammo-tray.is-sniper .ammo-svg { width: 27px; height: 49px; }
+
+/* HUNTING RIFLE — four soft-point cartridges in a balanced 2×2 tray. */
+.ammo-tray.is-hunting-rifle {
+  flex: 0 1 112px;
+  min-height: 106px;
+  max-height: 112px;
+  grid-template-columns: repeat(2,48px);
+  grid-auto-rows: 45px;
+  justify-content: center;
+  gap: 5px 12px;
+  padding: 7px 12px;
+  border-color: #72664b;
+  background:
+    linear-gradient(135deg,rgba(171,143,91,.10),transparent 48%),
+    linear-gradient(180deg,#25291f,#171d19);
+}
+.ammo-tray.is-hunting-rifle .ammo-slot {
+  width: 42px;
+  height: 44px;
+  border-radius: 5px 5px 10px 10px;
+  color: #d5bd88;
+  border-color: #82714a;
+  background: linear-gradient(150deg,#504631,#28271f);
+}
+.ammo-tray.is-hunting-rifle .ammo-svg { width: 18px; height: 31px; }
+
+/* Extra interaction feedback: selecting, firing, reloading and burst actions. */
+.weapon-card { animation: weapon-card-in 260ms cubic-bezier(.18,.75,.22,1) both; }
+.weapon-card:nth-child(2) { animation-delay: 18ms; }
+.weapon-card:nth-child(3) { animation-delay: 36ms; }
+.weapon-card:nth-child(4) { animation-delay: 54ms; }
+.weapon-card:nth-child(5) { animation-delay: 72ms; }
+.weapon-card:nth-child(6) { animation-delay: 90ms; }
+.weapon-card:nth-child(7) { animation-delay: 108ms; }
+.weapon-card:nth-child(8) { animation-delay: 126ms; }
+.weapon-card.is-selected { animation: weapon-selected 360ms ease both; }
+.weapon-card.is-selected::after { animation: selected-indicator 1.8s ease-in-out infinite; }
+.ammo-tray.is-firing { animation: magazine-kick 190ms ease-out; }
+.ammo-tray.is-firing .ammo-slot.just-fired::after { opacity: 1; animation: muzzle-glint 270ms ease-out both; }
+.ammo-tray.is-bursting .ammo-slot.is-spent { animation: belt-burst 430ms cubic-bezier(.15,.8,.2,1) both; }
+.ammo-tray.is-reloading .ammo-slot { animation: round-feed 500ms cubic-bezier(.16,.82,.22,1) both; }
+.ammo-tray.is-reloading .ammo-slot:nth-child(3n) { animation-delay: 35ms; }
+.ammo-tray.is-reloading .ammo-slot:nth-child(3n + 1) { animation-delay: 70ms; }
+.action-button.is-animating svg { animation: action-icon-spin 560ms cubic-bezier(.2,.8,.2,1); }
+.reload-button.is-animating { box-shadow: 0 0 0 2px rgba(192,214,156,.18), 0 0 16px rgba(192,214,156,.16); }
+.burst-button.is-animating { animation: burst-button-kick 520ms ease-out; }
+@keyframes weapon-card-in {
+  from { opacity: 0; transform: translateY(7px) scale(.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes weapon-selected {
+  0% { box-shadow: inset 0 0 0 1px rgba(193,212,161,.13); }
+  45% { box-shadow: inset 0 0 0 2px rgba(193,212,161,.32), 0 0 19px rgba(133,166,104,.2); }
+  100% { box-shadow: inset 0 0 0 1px rgba(193,212,161,.13), 0 0 14px rgba(133,166,104,.09); }
+}
+@keyframes selected-indicator {
+  0%,100% { opacity: .65; width: 13px; }
+  50% { opacity: 1; width: 23px; }
+}
+@keyframes magazine-kick {
+  0% { transform: translateX(0); }
+  28% { transform: translateX(-2px); }
+  58% { transform: translateX(1px); }
+  100% { transform: translateX(0); }
+}
+@keyframes muzzle-glint {
+  0% { transform: scale(.6); opacity: .85; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+@keyframes belt-burst {
+  0% { transform: translateY(0) scale(1); }
+  35% { transform: translateY(-2px) scale(1.08); }
+  100% { transform: translateY(2px) scale(.92); opacity: .36; }
+}
+@keyframes round-feed {
+  0% { opacity: .35; transform: translateY(-7px) scale(.82); }
+  70% { opacity: 1; transform: translateY(1px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes action-icon-spin {
+  0% { transform: rotate(0) scale(.9); }
+  60% { transform: rotate(200deg) scale(1.12); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+@keyframes burst-button-kick {
+  0% { transform: scale(1); filter: brightness(1); }
+  35% { transform: scale(.96); filter: brightness(1.3); }
+  100% { transform: scale(1); filter: brightness(1); }
+}
+
+/* Keep the magazine separated from the two fixed action buttons on short phones. */
+@media (max-width: 380px) {
+  .ammo-tray.is-revolver { flex-basis: 128px; width: 128px; height: 128px; min-height: 128px; max-height: 128px; }
+}
+@media (max-height: 600px) {
+  .ammo-tray.is-revolver { flex-basis: 116px; width: 116px; height: 116px; min-height: 116px; max-height: 116px; }
+  .ammo-tray.is-machinegun,
+  .ammo-tray.is-assault-rifle,
+  .ammo-tray.is-smg { max-height: 112px; }
+  .ammo-tray.is-shotgun { flex-basis: 102px; min-height: 102px; max-height: 102px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .weapon-card, .ammo-slot, .action-button { animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+}

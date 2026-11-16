@@ -64,12 +64,13 @@ jobs:
           const localAssets = [
             ...[...html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g)].map((match) => match[1]),
             "./src/weapons.js",
+            "./src/ammunition.js",
             "./src/sound.js",
             ...["pistol", "revolver", "machinegun", "assault-rifle", "shotgun", "smg", "sniper", "hunting-rifle"]
               .map((weapon) => `./assets/weapons/${weapon}.svg`),
             ...[
-              "pistol-fire.ogg", "pistol-reload.ogg",
-              "revolver-fire.ogg", "revolver-reload.wav",
+              "pistol-fire.wav", "pistol-reload.ogg",
+              "revolver-fire.wav", "revolver-reload.wav",
               "machinegun-fire.ogg", "machinegun-reload.ogg",
               "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
               "shotgun-fire.ogg", "shotgun-reload.ogg",

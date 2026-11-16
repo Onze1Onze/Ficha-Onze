@@ -58,8 +58,8 @@ test("todos os caminhos de áudio são locais ao projeto", async () => {
 });
 
 
-test("pistola e revólver usam gravações dedicadas e a recarga do revólver é WAV local", () => {
-  assert.equal(WEAPON_AUDIO.pistol.fire, "pistol-fire.ogg");
-  assert.equal(WEAPON_AUDIO.revolver.fire, "revolver-fire.ogg");
+test("pistola e revólver usam disparos WAV PCM locais e recarga WAV para o revólver", () => {
+  assert.equal(WEAPON_AUDIO.pistol.fire, "pistol-fire.wav");
+  assert.equal(WEAPON_AUDIO.revolver.fire, "revolver-fire.wav");
   assert.equal(WEAPON_AUDIO.revolver.reload, "revolver-reload.wav");
 });
