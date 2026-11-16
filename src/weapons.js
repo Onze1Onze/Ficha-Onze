@@ -20,7 +20,7 @@ export function createInitialState() {
   return {
     version: 1,
     selectedWeapon: WEAPONS[0].id,
-    ammo: Object.fromEntries(WEAPONS.map(({ id }) => [id, { spent: [] }])),
+    ammo: Object.fromEntries(WEAPONS.map(({ id, capacity }) => [id, { spent: Array(capacity).fill(false) }])),
   };
 }
 
