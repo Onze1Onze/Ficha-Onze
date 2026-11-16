@@ -35,17 +35,7 @@ let storageMode = "local";
 let saveQueue = Promise.resolve();
 let lastSavedJSON = "";
 let isReloadAnimating = false;
-
-const WEAPON_SVGS = {
-  pistol: `<path d="M10 22h34l5 6H31l-3 7h-8l3-7H10Z"/><path d="M44 22h10l5 4-2 3H48"/><path d="M12 21h34"/><path d="M18 35h10l-2 13H18Z"/><path d="M14 18h27"/>`,
-  revolver: `<path d="M9 22h24l5 5H23l-3 7h-8l2-7H9Z"/><path d="M32 20h13l6 7-6 5H34l-5-5Z"/><circle cx="39" cy="26" r="4"/><path d="M17 34h9l-1 14h-8Z"/><path d="M48 22h9l4 3-2 3h-9"/>`,
-  machinegun: `<path d="M7 23h45l6 5-4 4H12l-5-4Z"/><path d="M22 32h10l-2 14H20Z"/><path d="M37 32h8l-1 8h-7Z"/><path d="M53 23h8v4h-8"/><path d="M9 20h39"/><path d="M14 35v8M17 35v8"/>`,
-  assault: `<path d="M7 22h42l7 5-5 4H11l-4-4Z"/><path d="M20 31h10l-2 15h-9Z"/><path d="M39 31h7l-1 10h-7Z"/><path d="M50 22h11v4H50"/><path d="M10 19h34"/><path d="M14 34h4v8h-4Z"/>`,
-  shotgun: `<path d="M8 24h43l9 3-2 4H10l-2-4Z"/><path d="M18 31h12l-2 16H18Z"/><path d="M40 31h8l-1 8h-8Z"/><path d="M48 20h11v3H48"/><path d="M9 21h43"/><path d="M13 18h40"/>`,
-  smg: `<path d="M10 23h38l7 5-4 4H12l-2-5Z"/><path d="M22 31h10l-2 14h-9Z"/><path d="M35 31h8l-1 11h-8Z"/><path d="M47 22h12v4H47"/><path d="M15 20h33"/>`,
-  sniper: `<path d="M6 24h49l6 3-4 4H9l-3-4Z"/><path d="M20 31h10l-2 14H18Z"/><path d="M42 31h8l-1 8h-8Z"/><path d="M21 18h26v4H21Z"/><path d="M28 14h12v4H28Z"/><path d="M53 23h8"/>`,
-  hunting: `<path d="M8 24h45l7 3-4 4H11l-3-4Z"/><path d="M18 31h11l-2 16h-9Z"/><path d="M40 31h8l-1 8h-8Z"/><path d="M17 20h42v3H17Z"/><path d="M25 16h19v4H25Z"/>`,
-};
+let localInteractionVersion = 0;
 
 const AMMO_SVGS = {
   pistol: `<path d="M12 2.5c-3.7 4-5.5 7-5.5 10.2 0 3.3 2.4 5.4 5.5 5.4s5.5-2.1 5.5-5.4C17.5 9.5 15.7 6.5 12 2.5Z"/><path d="M7 15.3h10v4.2H7Z"/>`,
@@ -58,17 +48,13 @@ const AMMO_SVGS = {
   hunting: `<path d="M12 2c-3.1 4-4.8 7-4.8 10 0 3.2 2.1 5.2 4.8 5.2s4.8-2 4.8-5.2c0-3-1.7-6-4.8-10Z"/><path d="M7.2 14h9.6v5.7H7.2Z"/><path d="M9 17.5h6"/>`,
 };
 
-function svgIcon(paths, className) {
-  return `<svg class="${className}" viewBox="0 0 64 54" aria-hidden="true" focusable="false"><g fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="square" stroke-linejoin="miter">${paths}</g></svg>`;
-}
-
 function renderWeaponCards() {
   elements.weaponGrid.innerHTML = WEAPONS.map((weapon) => {
     const selected = state.selectedWeapon === weapon.id;
     return `
       <button class="weapon-card${selected ? " is-selected" : ""}" type="button"
         data-weapon="${weapon.id}" aria-pressed="${selected}" aria-label="Selecionar ${weapon.name}">
-        <span class="weapon-icon">${svgIcon(WEAPON_SVGS[weapon.icon], "weapon-svg")}</span>
+        <span class="weapon-icon"><img class="weapon-svg" src="./assets/weapons/${weapon.id === "assault-rifle" ? "assault-rifle" : weapon.id}.svg" alt="" aria-hidden="true" width="160" height="80" decoding="async"></span>
         <span class="weapon-name">${weapon.name}</span>
       </button>`;
   }).join("");
@@ -124,7 +110,7 @@ function persistState() {
   const serialized = JSON.stringify(snapshot);
   lastSavedJSON = serialized;
 
-  if (storageMode !== "obr" || !obr) {
+  if (!obr) {
     try {
       localStorage.setItem(LOCAL_STORAGE_KEY, serialized);
     } catch (error) {
@@ -133,9 +119,12 @@ function persistState() {
     return Promise.resolve();
   }
 
+  // Keep failed cloud writes retryable: a transient disconnect must not permanently
+  // switch this player to local-only mode for the rest of the session.
   saveQueue = saveQueue
     .catch(() => {})
     .then(() => obr.player.setMetadata({ [METADATA_KEY]: snapshot }))
+    .then(() => setStorageStatus("obr"))
     .catch((error) => {
       console.error("Falha ao salvar os metadados do jogador no Owlbear Rodeo.", error);
       setStorageStatus("offline");
@@ -150,6 +139,7 @@ function persistState() {
 
 function updateState(nextState, message) {
   state = normalizeState(nextState);
+  localInteractionVersion += 1;
   render();
   persistState();
   if (message) announce(message);
@@ -227,6 +217,7 @@ function restoreLocalState() {
 }
 
 async function connectOwlbear() {
+  const interactionVersionAtStart = localInteractionVersion;
   try {
     const sdk = await import(SDK_URL);
     const candidate = sdk.default ?? sdk;
@@ -236,9 +227,14 @@ async function connectOwlbear() {
     const playerId = candidate.player.id || await candidate.player.getId();
     const metadata = await candidate.player.getMetadata();
     const storedState = metadata?.[METADATA_KEY];
+    const changedWhileConnecting = localInteractionVersion !== interactionVersionAtStart;
 
     obr = candidate;
-    state = storedState ? normalizeState(storedState) : normalizeState(state);
+    // If the player used the panel while the SDK was still connecting, preserve
+    // those clicks instead of replacing them with the older metadata snapshot.
+    state = storedState && !changedWhileConnecting
+      ? normalizeState(storedState)
+      : normalizeState(state);
     lastSavedJSON = JSON.stringify(state);
     setStorageStatus("obr");
 
@@ -254,6 +250,10 @@ async function connectOwlbear() {
       lastSavedJSON = serialized;
       render();
     });
+
+    // Seed a new player metadata entry, or persist any interaction performed while
+    // the SDK was loading. The queued writer serializes this with subsequent clicks.
+    if (!storedState || changedWhileConnecting) await persistState();
 
     console.info(`Arsenal conectado ao Owlbear Rodeo para o jogador ${playerId}.`);
     return true;
