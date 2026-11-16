@@ -10,6 +10,9 @@ const mime = {
   ".js": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".svg": "image/svg+xml",
+  ".wav": "audio/wav",
+  ".ogg": "audio/ogg",
+  ".mp3": "audio/mpeg",
 };
 
 const server = createServer(async (request, response) => {
@@ -55,6 +58,13 @@ try {
         configurable: true,
         value: class { constructor() { throw new Error("Audio disabled for regression test"); } },
       });
+      window.__playedWeaponSounds = [];
+      HTMLMediaElement.prototype.load = function () {};
+      HTMLMediaElement.prototype.play = function () {
+        const source = this.currentSrc || this.src;
+        window.__playedWeaponSounds.push(new URL(source).pathname.split("/").pop());
+        return Promise.resolve();
+      };
     });
     await page.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
     await page.waitForFunction(() => document.querySelectorAll(".weapon-card").length === 8);
@@ -118,9 +128,13 @@ try {
     await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "11");
     assert.equal(await page.locator('[data-ammo-index="3"]').isDisabled(), true,
       `Largura ${width}px: disparo individual não apagou a munição`);
+    assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), "pistol-fire.wav",
+      `Largura ${width}px: o disparo da pistola precisa tocar o arquivo próprio`);
 
-    // Audio initialization intentionally throws above; ammunition must nevertheless be consumed.
+    // A sound playback failure must not prevent the ammunition action or local state update.
     await page.locator("#reload-button").click();
+    assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), "pistol-reload.ogg",
+      `Largura ${width}px: a recarga da pistola precisa tocar o arquivo próprio`);
     await page.waitForFunction(() =>
       document.querySelector("#ammo-remaining").textContent === "12" &&
       !document.querySelector("#ammo-tray").classList.contains("is-reloading")
@@ -173,6 +187,32 @@ try {
     assert.ok(Math.max(...ammo.heights) - Math.min(...ammo.heights) <= 1, `Largura ${width}px: munições com alturas desalinhadas`);
     assert.ok(ammo.scrollHeight > ammo.clientHeight, `Largura ${width}px: carregador de 50 balas não ativa rolagem`);
     if (width <= 380) assert.equal(ammo.columns, 6, `Largura ${width}px: grade de munição deve ter seis colunas`);
+
+    if (width === 360) {
+      const audioPairs = [
+        ["pistol", "pistol-fire.wav", "pistol-reload.ogg"],
+        ["revolver", "revolver-fire.wav", "revolver-reload.mp3"],
+        ["machinegun", "machinegun-fire.ogg", "machinegun-reload.ogg"],
+        ["assault-rifle", "assault-rifle-fire.ogg", "assault-rifle-reload.ogg"],
+        ["shotgun", "shotgun-fire.ogg", "shotgun-reload.ogg"],
+        ["smg", "smg-fire.ogg", "smg-reload.ogg"],
+        ["sniper", "sniper-fire.ogg", "sniper-reload.ogg"],
+        ["hunting-rifle", "hunting-rifle-fire.ogg", "hunting-rifle-reload.ogg"],
+      ];
+      for (const [weaponId, expectedFire, expectedReload] of audioPairs) {
+        await page.locator(`[data-weapon="${weaponId}"]`).click();
+        await page.locator('[data-ammo-index="0"]').click();
+        assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), expectedFire,
+          `${weaponId}: clique na munição precisa tocar seu disparo correspondente`);
+        await page.locator("#reload-button").click();
+        assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), expectedReload,
+          `${weaponId}: recarga precisa tocar seu arquivo correspondente`);
+        await page.waitForFunction(() =>
+          !document.querySelector("#ammo-tray").classList.contains("is-reloading")
+        );
+      }
+      console.log("Audio mapping OK: disparo e recarga corretos para as oito armas.");
+    }
 
     assert.deepEqual(errors, [], `Largura ${width}px: erros JavaScript`);
     console.log(`Layout OK: viewport ${width}px, oito armas alinhadas, 50 munições e controles visíveis.`);
