@@ -136,3 +136,13 @@ test("consultas seguras com estado ausente não lançam exceções", () => {
   assert.equal(canBurst(null), false);
   assert.deepEqual(consumeBurst(null), createInitialState());
 });
+
+
+test("o estado inicial já contém todos os ícones de munição, inclusive sem Owlbear conectado", () => {
+  const state = createInitialState();
+  for (const weapon of WEAPONS) {
+    assert.equal(state.ammo[weapon.id].spent.length, weapon.capacity);
+    assert.equal(state.ammo[weapon.id].spent.every((round) => round === false), true);
+    assert.equal(remainingAmmo(state, weapon.id), weapon.capacity);
+  }
+});
