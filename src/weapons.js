@@ -94,3 +94,28 @@ export function reloadWeapon(state, weaponId = undefined) {
   next.ammo[weapon.id].spent = Array(weapon.capacity).fill(false);
   return next;
 }
+
+/** Replays user actions made while the Owlbear player metadata was loading. */
+export function applyQueuedOperations(state, operations = []) {
+  let next = normalizeState(state);
+  for (const operation of operations) {
+    if (!operation || typeof operation !== "object") continue;
+    switch (operation.type) {
+      case "select":
+        next = selectWeapon(next, operation.weaponId);
+        break;
+      case "consume":
+        next = consumeRound(next, operation.weaponId, operation.index);
+        break;
+      case "burst":
+        next = consumeBurst(next, operation.weaponId);
+        break;
+      case "reload":
+        next = reloadWeapon(next, operation.weaponId);
+        break;
+      default:
+        break;
+    }
+  }
+  return next;
+}
