@@ -54,7 +54,7 @@ function renderWeaponCards() {
     return `
       <button class="weapon-card${selected ? " is-selected" : ""}" type="button"
         data-weapon="${weapon.id}" aria-pressed="${selected}" aria-label="Selecionar ${weapon.name}">
-        <span class="weapon-icon"><img class="weapon-svg" src="./assets/weapons/${weapon.id === "assault-rifle" ? "assault-rifle" : weapon.id}.svg" alt="" aria-hidden="true" width="160" height="80" decoding="async"></span>
+        <span class="weapon-icon"><img class="weapon-svg" src="./assets/weapons/${weapon.id}.svg" alt="" aria-hidden="true" width="160" height="80" decoding="async"></span>
         <span class="weapon-name">${weapon.name}</span>
       </button>`;
   }).join("");
