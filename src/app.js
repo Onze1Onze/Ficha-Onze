@@ -68,17 +68,25 @@ function renderAmmo() {
   const isRevolver = weapon.id === "revolver";
 
   elements.ammoTray.classList.toggle("is-revolver", isRevolver);
-  elements.ammoTray.innerHTML = spent.map((isSpent, index) => `
+  elements.ammoTray.innerHTML = spent.map((isSpent, index) => {
+    const angle = (index * 60 - 90) * Math.PI / 180;
+    const ringX = 50 + Math.cos(angle) * 32.5;
+    const ringY = 50 + Math.sin(angle) * 32.5;
+    const positionStyle = isRevolver
+      ? `style="--slot-x: ${ringX.toFixed(3)}%; --slot-y: ${ringY.toFixed(3)}%;"`
+      : "";
+    return `
     <button class="ammo-slot${isSpent ? " is-spent" : ""}${isRevolver ? " is-revolver-slot" : ""}" type="button"
       data-ammo-index="${index}" ${isSpent ? "disabled" : ""}
-      ${isRevolver ? `style="--slot-angle: ${index * 60}deg;"` : ""}
+      ${positionStyle}
       aria-label="${isRevolver ? "Câmara" : "Munição"} ${index + 1}, ${isSpent ? "disparada" : "disponível"}"
       title="${isRevolver ? "Câmara" : "Munição"} ${index + 1}">
       <svg class="ammo-svg" viewBox="0 0 24 22" aria-hidden="true" focusable="false">
         <g fill="currentColor" stroke="currentColor" stroke-width="0.6" stroke-linejoin="round">${AMMO_SVGS[weapon.ammo]}</g>
       </svg>
       <span class="ammo-index">${String(index + 1).padStart(2, "0")}</span>
-    </button>`).join("");
+    </button>`;
+  }).join("");
 
   elements.selectedWeapon.textContent = weapon.name.toLocaleUpperCase("pt-BR");
   elements.ammoRemaining.textContent = String(remainingAmmo(state, weapon.id));
