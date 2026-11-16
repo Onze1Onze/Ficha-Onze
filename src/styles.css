@@ -390,3 +390,106 @@ button:focus-visible, .ammo-tray:focus-visible { outline: 2px solid var(--accent
     font-size: 8px;
   }
 }
+
+
+/* Revolver: six independent rounds arranged as a radial cylinder. */
+.ammo-tray.is-revolver {
+  position: relative;
+  display: block;
+  flex: 0 1 222px;
+  width: min(100%, 222px);
+  min-width: 0;
+  min-height: 222px;
+  height: 222px;
+  max-height: 222px;
+  margin-inline: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #53654e;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, #141b16 0 27%, #485744 27.5% 29%, #263228 30% 57%, #18211a 58% 100%);
+  box-shadow:
+    inset 0 0 0 7px rgba(117, 137, 103, .12),
+    inset 0 0 0 9px rgba(9, 14, 10, .78),
+    0 0 0 1px rgba(145, 163, 126, .12);
+  scrollbar-width: none;
+}
+.ammo-tray.is-revolver::-webkit-scrollbar { display: none; }
+.ammo-tray.is-revolver::before {
+  content: "";
+  position: absolute;
+  inset: 36px;
+  border: 1px dashed rgba(176, 194, 153, .32);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.ammo-tray.is-revolver::after {
+  content: "TAMBOR";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: rgba(187, 202, 164, .48);
+  font: 800 8px/1 ui-monospace, SFMono-Regular, Consolas, monospace;
+  letter-spacing: .2em;
+  pointer-events: none;
+}
+.ammo-tray.is-revolver .ammo-slot {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 50%;
+  width: 42px;
+  height: 44px;
+  padding: 2px 0 1px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-73px) rotate(calc(0deg - var(--slot-angle)));
+  box-shadow: inset 0 0 0 2px rgba(9, 14, 10, .25), 0 2px 5px rgba(0, 0, 0, .32);
+}
+.ammo-tray.is-revolver .ammo-svg { width: 19px; height: 22px; }
+.ammo-tray.is-revolver .ammo-index { font-size: 6px; }
+.ammo-tray.is-revolver .ammo-slot:hover:not(:disabled) {
+  border-color: #d0dfa9;
+  background: #465d42;
+  transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-78px) rotate(calc(0deg - var(--slot-angle))) scale(1.04);
+}
+.ammo-tray.is-revolver .ammo-slot:active:not(:disabled) {
+  transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-73px) rotate(calc(0deg - var(--slot-angle))) scale(.92);
+}
+.ammo-tray.is-revolver .ammo-slot.is-spent,
+.ammo-tray.is-revolver .ammo-slot:disabled {
+  transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-73px) rotate(calc(0deg - var(--slot-angle))) scale(.94);
+}
+.ammo-tray.is-revolver .ammo-slot.just-fired { animation: revolver-shot-out 300ms ease both; }
+.ammo-tray.is-revolver.is-reloading .ammo-slot { animation: revolver-reload-in 460ms cubic-bezier(.16,.8,.24,1) both; }
+.ammo-tray.is-revolver.is-reloading .ammo-slot:nth-child(2n) { animation-delay: 35ms; }
+@keyframes revolver-shot-out {
+  0% { opacity: 1; filter: none; }
+  35% { opacity: .78; filter: brightness(1.3); }
+  100% { opacity: .45; filter: grayscale(1); }
+}
+@keyframes revolver-reload-in {
+  0% { opacity: .42; filter: grayscale(1); }
+  65% { opacity: 1; filter: brightness(1.18); }
+  100% { opacity: 1; filter: none; }
+}
+@media (max-width: 380px) {
+  .ammo-tray.is-revolver {
+    flex-basis: 216px;
+    width: min(100%, 216px);
+    min-height: 216px;
+    height: 216px;
+    max-height: 216px;
+  }
+  .ammo-tray.is-revolver .ammo-slot {
+    transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-70px) rotate(calc(0deg - var(--slot-angle)));
+  }
+  .ammo-tray.is-revolver .ammo-slot.is-spent,
+  .ammo-tray.is-revolver .ammo-slot:disabled {
+    transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-70px) rotate(calc(0deg - var(--slot-angle))) scale(.94);
+  }
+  .ammo-tray.is-revolver .ammo-slot:hover:not(:disabled) {
+    transform: translate(-50%, -50%) rotate(var(--slot-angle)) translateY(-75px) rotate(calc(0deg - var(--slot-angle))) scale(1.04);
+  }
+}

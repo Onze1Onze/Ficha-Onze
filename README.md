@@ -21,7 +21,7 @@ A extensão usa o SDK oficial `@owlbear-rodeo/sdk` (versão 3.1.0). O estado do 
 
 Quando a página é aberta fora de uma sala do Owlbear Rodeo, funciona como prévia e salva o estado em `localStorage` deste navegador.
 
-Os ícones das oito armas são SVGs originais do projeto, armazenados localmente em `assets/weapons/`, com viewBox e dimensões intrínsecas padronizados (160 × 80). Há 16 efeitos de áudio locais em `assets/audio/weapons/`: um disparo e uma recarga próprios para cada arma. Os sons são pré-carregados sem autoplay e só são reproduzidos após uma interação legítima do jogador. Se o navegador não conseguir tocar um arquivo, a operação continua funcionando e usa um efeito sintetizado de fallback.
+Os ícones das oito armas são SVGs originais do projeto, armazenados localmente em `assets/weapons/`, com viewBox e dimensões intrínsecas padronizados (160 × 80). Há 16 efeitos de áudio locais em `assets/audio/weapons/`: um disparo e uma recarga próprios para cada arma. Os sons são pré-carregados sem autoplay e reproduzidos por um elemento de áudio novo, criado diretamente no clique para evitar falhas de clonagem em navegadores móveis. O revólver apresenta as seis munições em formato de tambor circular.
 
 ## Regras
 
@@ -30,6 +30,7 @@ Os ícones das oito armas são SVGs originais do projeto, armazenados localmente
 - `DISPARADA` consome dez munições disponíveis de forma atômica; fica desabilitada quando restam menos de dez.
 - `RECARREGAR` restaura apenas o carregador da arma selecionada.
 - A quantidade de munição de cada arma é preservada ao alternar entre elas.
+- O revólver apresenta as seis câmaras ao redor de um tambor circular, mantendo cada uma individualmente clicável.
 
 ## Instalação
 
@@ -45,7 +46,7 @@ Requer Node.js 18 ou superior. Execute:
 
 `npm test`
 
-Os testes cobrem capacidades, persistência independente por arma, disparos individuais, disparada atômica, recarga seletiva, normalização dos dados, integridade dos SVGs e os 16 arquivos de áudio (assinaturas WAV/Ogg/MP3 e mapeamento arma/evento). O fluxo do GitHub Actions também instala Chromium e verifica o alinhamento dos cartões, carregamento dos ícones, rolagem das 50 munições e dimensões dos botões em viewports de 280, 320, 360 e 440 px.
+Os testes cobrem capacidades, persistência independente por arma, disparos individuais, disparada atômica, recarga seletiva, normalização dos dados, integridade dos SVGs e os 16 arquivos de áudio (assinaturas WAV/Ogg/MP3 e mapeamento arma/evento). O fluxo do GitHub Actions também instala Chromium e verifica o alinhamento dos cartões, carregamento dos ícones, rolagem das 50 munições, geometria circular do tambor do revólver e dimensões dos botões em viewports de 280, 320, 360 e 440 px.
 
 ## Auditoria e origem dos ícones
 

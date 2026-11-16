@@ -142,6 +142,36 @@ try {
 
     await page.locator('[data-weapon="revolver"]').click();
     assert.equal(await page.locator(".ammo-slot").count(), 6, `Largura ${width}px: capacidade do revólver`);
+    const cylinder = await page.evaluate(() => {
+      const tray = document.querySelector("#ammo-tray");
+      const trayBox = tray.getBoundingClientRect();
+      const centerX = trayBox.left + trayBox.width / 2;
+      const centerY = trayBox.top + trayBox.height / 2;
+      const slots = [...tray.querySelectorAll(".ammo-slot")].map((slot) => {
+        const box = slot.getBoundingClientRect();
+        const x = box.left + box.width / 2;
+        const y = box.top + box.height / 2;
+        return {
+          distance: Math.hypot(x - centerX, y - centerY),
+          angle: (Math.atan2(y - centerY, x - centerX) * 180 / Math.PI + 360) % 360,
+          inside: box.left >= trayBox.left && box.right <= trayBox.right &&
+            box.top >= trayBox.top && box.bottom <= trayBox.bottom,
+        };
+      });
+      return { isCylinder: tray.classList.contains("is-revolver"), slots };
+    });
+    assert.equal(cylinder.isCylinder, true, `Largura ${width}px: revólver sem layout de tambor`);
+    assert.equal(cylinder.slots.length, 6);
+    assert.ok(cylinder.slots.every((slot) => slot.inside), `Largura ${width}px: câmara fora do tambor`);
+    const radii = cylinder.slots.map((slot) => slot.distance);
+    assert.ok(Math.max(...radii) - Math.min(...radii) <= 2, `Largura ${width}px: câmaras não formam um círculo`);
+    const angles = cylinder.slots.map((slot) => slot.angle).sort((a, b) => a - b);
+    for (let i = 1; i < angles.length; i += 1) {
+      assert.ok(Math.abs((angles[i] - angles[i - 1]) - 60) <= 5,
+        `Largura ${width}px: câmaras fora do intervalo de 60 graus`);
+    }
+    assert.ok(Math.abs((angles[0] + 360 - angles.at(-1)) - 60) <= 5,
+      `Largura ${width}px: intervalo de fechamento do tambor incorreto`);
     await page.locator('[data-ammo-index="2"]').click();
     await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "5");
     await page.locator('[data-weapon="pistol"]').click();
@@ -190,8 +220,8 @@ try {
 
     if (width === 360) {
       const audioPairs = [
-        ["pistol", "pistol-fire.wav", "pistol-reload.ogg"],
-        ["revolver", "revolver-fire.wav", "revolver-reload.mp3"],
+        ["pistol", "pistol-fire.ogg", "pistol-reload.ogg"],
+        ["revolver", "revolver-fire.ogg", "revolver-reload.wav"],
         ["machinegun", "machinegun-fire.ogg", "machinegun-reload.ogg"],
         ["assault-rifle", "assault-rifle-fire.ogg", "assault-rifle-reload.ogg"],
         ["shotgun", "shotgun-fire.ogg", "shotgun-reload.ogg"],
@@ -292,8 +322,8 @@ try {
   await decoderPage.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
   const decodedSounds = await decoderPage.evaluate(async () => {
     const filenames = [
-      "pistol-fire.wav", "pistol-reload.ogg",
-      "revolver-fire.wav", "revolver-reload.mp3",
+      "pistol-fire.ogg", "pistol-reload.ogg",
+      "revolver-fire.ogg", "revolver-reload.wav",
       "machinegun-fire.ogg", "machinegun-reload.ogg",
       "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
       "shotgun-fire.ogg", "shotgun-reload.ogg",

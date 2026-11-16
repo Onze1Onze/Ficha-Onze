@@ -68,8 +68,8 @@ jobs:
             ...["pistol", "revolver", "machinegun", "assault-rifle", "shotgun", "smg", "sniper", "hunting-rifle"]
               .map((weapon) => `./assets/weapons/${weapon}.svg`),
             ...[
-              "pistol-fire.wav", "pistol-reload.ogg",
-              "revolver-fire.wav", "revolver-reload.mp3",
+              "pistol-fire.ogg", "pistol-reload.ogg",
+              "revolver-fire.ogg", "revolver-reload.wav",
               "machinegun-fire.ogg", "machinegun-reload.ogg",
               "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
               "shotgun-fire.ogg", "shotgun-reload.ogg",

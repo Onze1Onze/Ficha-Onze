@@ -65,11 +65,15 @@ function renderWeaponCards() {
 function renderAmmo() {
   const weapon = getWeapon(state.selectedWeapon);
   const spent = state.ammo[weapon.id].spent;
+  const isRevolver = weapon.id === "revolver";
+
+  elements.ammoTray.classList.toggle("is-revolver", isRevolver);
   elements.ammoTray.innerHTML = spent.map((isSpent, index) => `
-    <button class="ammo-slot${isSpent ? " is-spent" : ""}" type="button"
+    <button class="ammo-slot${isSpent ? " is-spent" : ""}${isRevolver ? " is-revolver-slot" : ""}" type="button"
       data-ammo-index="${index}" ${isSpent ? "disabled" : ""}
-      aria-label="Munição ${index + 1}, ${isSpent ? "disparada" : "disponível"}"
-      title="Munição ${index + 1}">
+      ${isRevolver ? `style="--slot-angle: ${index * 60}deg;"` : ""}
+      aria-label="${isRevolver ? "Câmara" : "Munição"} ${index + 1}, ${isSpent ? "disparada" : "disponível"}"
+      title="${isRevolver ? "Câmara" : "Munição"} ${index + 1}">
       <svg class="ammo-svg" viewBox="0 0 24 22" aria-hidden="true" focusable="false">
         <g fill="currentColor" stroke="currentColor" stroke-width="0.6" stroke-linejoin="round">${AMMO_SVGS[weapon.ammo]}</g>
       </svg>

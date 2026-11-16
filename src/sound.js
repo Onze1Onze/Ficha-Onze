@@ -1,8 +1,8 @@
 const SOUND_BASE = new URL("../assets/audio/weapons/", import.meta.url);
 
 export const WEAPON_AUDIO = Object.freeze({
-  pistol: Object.freeze({ fire: "pistol-fire.wav", reload: "pistol-reload.ogg" }),
-  revolver: Object.freeze({ fire: "revolver-fire.wav", reload: "revolver-reload.mp3" }),
+  pistol: Object.freeze({ fire: "pistol-fire.ogg", reload: "pistol-reload.ogg" }),
+  revolver: Object.freeze({ fire: "revolver-fire.ogg", reload: "revolver-reload.wav" }),
   machinegun: Object.freeze({ fire: "machinegun-fire.ogg", reload: "machinegun-reload.ogg" }),
   "assault-rifle": Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "assault-rifle-reload.ogg" }),
   shotgun: Object.freeze({ fire: "shotgun-fire.ogg", reload: "shotgun-reload.ogg" }),
@@ -11,27 +11,29 @@ export const WEAPON_AUDIO = Object.freeze({
   "hunting-rifle": Object.freeze({ fire: "hunting-rifle-fire.ogg", reload: "hunting-rifle-reload.ogg" }),
 });
 
-const audioTemplates = new Map();
+const preloaders = new Map();
+const activeSounds = new Set();
 let audioContext;
 
 function assetUrl(filename) {
   return new URL(filename, SOUND_BASE).href;
 }
 
-/** Preloads local files without autoplay; playback still starts only from a user click. */
+/** Warm the browser cache without playing anything or bypassing autoplay restrictions. */
 export function preloadWeaponAudio() {
   if (typeof Audio === "undefined") return;
 
   for (const [weaponId, sounds] of Object.entries(WEAPON_AUDIO)) {
     for (const [kind, filename] of Object.entries(sounds)) {
       const key = `${weaponId}:${kind}`;
-      if (audioTemplates.has(key)) continue;
+      if (preloaders.has(key)) continue;
 
       try {
-        const audio = new Audio(assetUrl(filename));
+        const audio = new Audio();
         audio.preload = "auto";
-        audio.volume = 0.78;
-        audioTemplates.set(key, audio);
+        audio.volume = 0.96;
+        audio.src = assetUrl(filename);
+        preloaders.set(key, audio);
         audio.load();
       } catch (error) {
         console.warn(`Não foi possível preparar o áudio ${filename}.`, error);
@@ -138,17 +140,27 @@ function playLocalFile(weaponId, kind, fallback) {
       return false;
     }
 
-    const key = `${weaponId}:${kind}`;
-    const template = audioTemplates.get(key);
-    const audio = template ? template.cloneNode(true) : new Audio(assetUrl(filename));
-    audio.volume = 0.78;
-    audio.currentTime = 0;
-
-    const result = audio.play();
-    result?.catch((error) => {
+    // A fresh Audio instance avoids cloneNode() state/readiness problems in mobile browsers.
+    const audio = new Audio(assetUrl(filename));
+    audio.preload = "auto";
+    audio.volume = 0.96;
+    let failed = false;
+    const cleanup = () => activeSounds.delete(audio);
+    const useFallback = (error) => {
+      if (failed) return;
+      failed = true;
+      cleanup();
       console.warn(`Falha ao tocar ${filename}; usando áudio de fallback.`, error);
       fallback();
-    });
+    };
+
+    audio.addEventListener("ended", cleanup, { once: true });
+    audio.addEventListener("error", () => useFallback(audio.error), { once: true });
+    activeSounds.add(audio);
+
+    // Called synchronously from the player's ammo or reload click.
+    const result = audio.play();
+    result?.catch(useFallback);
     return true;
   } catch (error) {
     console.warn(`Falha ao iniciar ${filename}; usando áudio de fallback.`, error);
