@@ -225,6 +225,7 @@ try {
       }
     }
 
+    await page.locator('[data-weapon="revolver"]').click();
     await page.locator('[data-ammo-index="2"]').click();
     await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "5");
     await page.locator('[data-weapon="pistol"]').click();
