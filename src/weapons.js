@@ -44,8 +44,10 @@ export function normalizeState(input) {
   return { version: 1, selectedWeapon, ammo };
 }
 
-export function remainingAmmo(state, weaponId = state.selectedWeapon) {
-  const weapon = getWeapon(weaponId);
+export function remainingAmmo(state, weaponId = undefined) {
+  const id = weaponId ?? state?.selectedWeapon;
+  const weapon = WEAPON_BY_ID.get(id);
+  if (!weapon) return 0;
   const spent = normalizeState(state).ammo[weapon.id].spent;
   return weapon.capacity - spent.filter(Boolean).length;
 }
@@ -57,23 +59,23 @@ export function selectWeapon(state, weaponId) {
 
 export function consumeRound(state, weaponId, index) {
   const next = normalizeState(state);
-  const weapon = getWeapon(weaponId);
-  if (!Number.isInteger(index) || index < 0 || index >= weapon.capacity) return next;
+  const weapon = WEAPON_BY_ID.get(weaponId);
+  if (!weapon || !Number.isInteger(index) || index < 0 || index >= weapon.capacity) return next;
   if (next.ammo[weapon.id].spent[index]) return next;
 
   next.ammo[weapon.id].spent[index] = true;
   return next;
 }
 
-export function canBurst(state, weaponId = state.selectedWeapon) {
+export function canBurst(state, weaponId = undefined) {
   return remainingAmmo(state, weaponId) >= 10;
 }
 
 /** Consumes ten available rounds atomically, or leaves the state untouched. */
-export function consumeBurst(state, weaponId = state.selectedWeapon) {
+export function consumeBurst(state, weaponId = undefined) {
   const next = normalizeState(state);
-  const weapon = getWeapon(weaponId);
-  if (!canBurst(next, weapon.id)) return next;
+  const weapon = WEAPON_BY_ID.get(weaponId ?? state?.selectedWeapon);
+  if (!weapon || !canBurst(next, weapon.id)) return next;
 
   let consumed = 0;
   for (let index = 0; index < weapon.capacity && consumed < 10; index += 1) {
@@ -85,9 +87,10 @@ export function consumeBurst(state, weaponId = state.selectedWeapon) {
   return consumed === 10 ? next : normalizeState(state);
 }
 
-export function reloadWeapon(state, weaponId = state.selectedWeapon) {
+export function reloadWeapon(state, weaponId = undefined) {
   const next = normalizeState(state);
-  const weapon = getWeapon(weaponId);
+  const weapon = WEAPON_BY_ID.get(weaponId ?? state?.selectedWeapon);
+  if (!weapon) return next;
   next.ammo[weapon.id].spent = Array(weapon.capacity).fill(false);
   return next;
 }
