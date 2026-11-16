@@ -1,0 +1,15 @@
+{
+  "name": "Arsenal de Munição",
+  "version": "1.0.0",
+  "manifest_version": 1,
+  "description": "Painel individual de armas, carregadores e disparos.",
+  "author": "Onze1Onze",
+  "icon": "https://cdn.jsdelivr.net/gh/Onze1Onze/Ficha-Onze@main/icon.svg",
+  "action": {
+    "title": "Arsenal",
+    "icon": "https://cdn.jsdelivr.net/gh/Onze1Onze/Ficha-Onze@main/icon.svg",
+    "popover": "https://cdn.jsdelivr.net/gh/Onze1Onze/Ficha-Onze@main/index.html",
+    "width": 440,
+    "height": 680
+  }
+}
