@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Test ammunition logic and SVG assets
+      - name: Test ammunition logic, SVG assets and weapon audio
         run: npm test
 
       - name: Install Chromium for responsive layout tests
@@ -66,7 +66,17 @@ jobs:
             "./src/weapons.js",
             "./src/sound.js",
             ...["pistol", "revolver", "machinegun", "assault-rifle", "shotgun", "smg", "sniper", "hunting-rifle"]
-              .map((weapon) => `./assets/weapons/${weapon}.svg`)
+              .map((weapon) => `./assets/weapons/${weapon}.svg`),
+            ...[
+              "pistol-fire.wav", "pistol-reload.ogg",
+              "revolver-fire.wav", "revolver-reload.mp3",
+              "machinegun-fire.ogg", "machinegun-reload.ogg",
+              "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
+              "shotgun-fire.ogg", "shotgun-reload.ogg",
+              "smg-fire.ogg", "smg-reload.ogg",
+              "sniper-fire.ogg", "sniper-reload.ogg",
+              "hunting-rifle-fire.ogg", "hunting-rifle-reload.ogg"
+            ].map((filename) => `./assets/audio/weapons/${filename}`)
           ];
           for (const asset of new Set(localAssets)) {
             await checkedFetch(new URL(asset, manifest.action.popover).href);
