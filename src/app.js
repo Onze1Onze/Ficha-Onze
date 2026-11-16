@@ -11,7 +11,7 @@ import {
   reloadWeapon,
   selectWeapon,
 } from "./weapons.js";
-import { playBurst, playShot } from "./sound.js";
+import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js";
 
 const METADATA_KEY = "com.onze1.ficha-onze.weapon-ammo";
 const LOCAL_STORAGE_KEY = "ficha-onze:weapon-ammo:v1";
@@ -160,7 +160,7 @@ function handleAmmoClick(event) {
   const next = consumeRound(state, weapon.id, index);
   if (remainingAmmo(next, weapon.id) === remainingAmmo(state, weapon.id)) return;
 
-  playShot();
+  playWeaponShot(weapon.id);
   updateState(next, `Disparo. ${remainingAmmo(next, weapon.id)} munições restantes.`, {
     type: "consume", weaponId: weapon.id, index,
   });
@@ -188,6 +188,7 @@ function handleReload() {
   if (remainingAmmo(state, weapon.id) === weapon.capacity || isReloadAnimating) return;
 
   isReloadAnimating = true;
+  playWeaponReload(weapon.id);
   const next = reloadWeapon(state, weapon.id);
   updateState(next, `${weapon.name} recarregada.`, { type: "reload", weaponId: weapon.id });
   elements.ammoTray.classList.remove("is-reloading");
@@ -278,6 +279,7 @@ async function connectOwlbear() {
 }
 
 async function start() {
+  preloadWeaponAudio();
   restoreLocalState();
   render();
   bindEvents();
