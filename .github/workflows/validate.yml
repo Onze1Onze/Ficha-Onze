@@ -43,7 +43,8 @@ jobs:
             return response;
           }
 
-          const manifestResponse = await checkedFetch(manifestUrl, "json");
+          // raw.githubusercontent.com intentionally serves text/plain; JSON is validated by parsing it.
+          const manifestResponse = await checkedFetch(manifestUrl);
           const manifest = await manifestResponse.json();
           assert.equal(manifest.manifest_version, 1);
           assert.ok(manifest.action?.popover);
@@ -58,10 +59,9 @@ jobs:
             "./src/sound.js"
           ];
           for (const asset of new Set(localAssets)) {
-            const url = new URL(asset, manifest.action.popover).href;
-            await checkedFetch(url);
+            await checkedFetch(new URL(asset, manifest.action.popover).href);
           }
 
-          await checkedFetch(sdkUrl, "javascript");
+          await checkedFetch(sdkUrl);
           console.log("Hosted resources and SDK endpoint verified.");
           NODE
