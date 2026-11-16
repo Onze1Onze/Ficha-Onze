@@ -4,11 +4,11 @@
   "manifest_version": 1,
   "description": "Painel individual de armas, carregadores e disparos.",
   "author": "Onze1Onze",
-  "icon": "https://cdn.jsdelivr.net/gh/Onze1Onze/Ficha-Onze@main/icon.svg",
+  "icon": "https://onze1onze.github.io/Ficha-Onze/icon.svg",
   "action": {
     "title": "Arsenal",
-    "icon": "https://cdn.jsdelivr.net/gh/Onze1Onze/Ficha-Onze@main/icon.svg",
-    "popover": "https://cdn.jsdelivr.net/gh/Onze1Onze/Ficha-Onze@main/index.html",
+    "icon": "https://onze1onze.github.io/Ficha-Onze/icon.svg",
+    "popover": "https://onze1onze.github.io/Ficha-Onze/",
     "width": 440,
     "height": 680
   }
