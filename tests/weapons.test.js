@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   WEAPONS,
+  applyQueuedOperations,
   canBurst,
   consumeBurst,
   consumeRound,
@@ -145,4 +146,34 @@ test("o estado inicial já contém todos os ícones de munição, inclusive sem 
     assert.equal(state.ammo[weapon.id].spent.every((round) => round === false), true);
     assert.equal(remainingAmmo(state, weapon.id), weapon.capacity);
   }
+});
+
+
+test("ações feitas durante a conexão preservam dados remotos de outras armas", () => {
+  let remote = createInitialState();
+  remote = consumeRound(remote, "pistol", 5);
+  remote = consumeRound(remote, "revolver", 2);
+
+  const queued = applyQueuedOperations(remote, [
+    { type: "consume", weaponId: "pistol", index: 0 },
+    { type: "select", weaponId: "revolver" },
+  ]);
+
+  assert.equal(remainingAmmo(queued, "pistol"), 10);
+  assert.equal(remainingAmmo(queued, "revolver"), 5);
+  assert.equal(queued.selectedWeapon, "revolver");
+});
+
+test("uma recarga ocorrida enquanto sincroniza limpa todo o carregador remoto", () => {
+  let remote = createInitialState();
+  remote = consumeRound(remote, "pistol", 0);
+  remote = consumeRound(remote, "pistol", 7);
+
+  const merged = applyQueuedOperations(remote, [
+    { type: "reload", weaponId: "pistol" },
+  ]);
+
+  assert.equal(remainingAmmo(merged, "pistol"), 12);
+  assert.equal(merged.ammo.pistol.spent.some(Boolean), false);
+  assert.equal(remainingAmmo(merged, "revolver"), 6);
 });
