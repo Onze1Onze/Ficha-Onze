@@ -6,7 +6,7 @@ Os 16 arquivos desta pasta são cópias locais para que a extensão não dependa
 | --- | --- | --- | --- |
 | Pistola — disparo | `pistol-fire.wav` | Efeito original sintetizado para o Ficha-Onze com ruído filtrado, transiente de alta frequência, corpo grave e cauda curta; WAV PCM mono 16-bit / 44,1 kHz | Produção própria do projeto, sem gravação de terceiros |
 | Pistola — recarga | `pistol-reload.ogg` | [GunLib — deagle_reload.ogg](https://github.com/Deases/GunLib/blob/main/sounds/deagle_reload.ogg) | TheRichardGamer — CC0 1.0 (Freesound) |
-| Revólver — disparo | `revolver-fire.wav` | Efeito original sintetizado para o Ficha-Onze com impacto grave prolongado, estalo amplo e reflexão curta; WAV PCM mono 16-bit / 44,1 kHz | Produção própria do projeto, sem gravação de terceiros |
+| Revólver — disparo | `revolver-fire.mp3` | [Gun Shot](https://pixabay.com/sound-effects/film-special-effects-gun-shot-359196/) enviado pelo usuário; convertido para MP3 mono a 16 kHz / 24 kbps, duração de aproximadamente 6 s | u_62htdrvg4y — Pixabay Content License |
 | Revólver — recarga | `revolver-reload.wav` | [Gun reload sounds — gunreload1.wav](https://opengameart.org/content/gun-reload-sounds) | SpringySpringo — CC0 1.0; recorte mono derivado do projeto [Nephelia](https://github.com/ItsJuniorDias/nephelia/blob/main/assets/audio/sfx/opengameart/revolver_reload.wav) |
 | Metralhadora — disparo | `machinegun-fire.ogg` | [GunLib — tommy_shot.ogg](https://github.com/Deases/GunLib/blob/main/sounds/tommy_shot.ogg) | waxsocks — CC0 1.0 (Freesound) |
 | Metralhadora — recarga | `machinegun-reload.ogg` | [OpenSpades Free Pak — SMG ReloadLocal](https://github.com/DeathByDenim/openspades-free-pak/blob/main/License/Credits-pak001-Free.md) | LFA, Equipment Clicks III — CC0 1.0 |

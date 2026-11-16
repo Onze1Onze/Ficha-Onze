@@ -275,7 +275,7 @@ try {
     if (width === 360) {
       const audioPairs = [
         ["pistol", "pistol-fire.wav", "pistol-reload.ogg"],
-        ["revolver", "revolver-fire.wav", "revolver-reload.wav"],
+        ["revolver", "revolver-fire.mp3", "revolver-reload.wav"],
         ["machinegun", "machinegun-fire.ogg", "machinegun-reload.ogg"],
         ["assault-rifle", "assault-rifle-fire.ogg", "assault-rifle-reload.ogg"],
         ["shotgun", "shotgun-fire.ogg", "shotgun-reload.ogg"],
@@ -377,7 +377,7 @@ try {
   const decodedSounds = await decoderPage.evaluate(async () => {
     const filenames = [
       "pistol-fire.wav", "pistol-reload.ogg",
-      "revolver-fire.wav", "revolver-reload.wav",
+      "revolver-fire.mp3", "revolver-reload.wav",
       "machinegun-fire.ogg", "machinegun-reload.ogg",
       "assault-rifle-fire.ogg", "assault-rifle-reload.ogg",
       "shotgun-fire.ogg", "shotgun-reload.ogg",

@@ -2,7 +2,7 @@ const SOUND_BASE = new URL("../assets/audio/weapons/", import.meta.url);
 
 export const WEAPON_AUDIO = Object.freeze({
   pistol: Object.freeze({ fire: "pistol-fire.wav", reload: "pistol-reload.ogg" }),
-  revolver: Object.freeze({ fire: "revolver-fire.wav", reload: "revolver-reload.wav" }),
+  revolver: Object.freeze({ fire: "revolver-fire.mp3", reload: "revolver-reload.wav" }),
   machinegun: Object.freeze({ fire: "machinegun-fire.ogg", reload: "machinegun-reload.ogg" }),
   "assault-rifle": Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "assault-rifle-reload.ogg" }),
   shotgun: Object.freeze({ fire: "shotgun-fire.ogg", reload: "shotgun-reload.ogg" }),
