@@ -21,7 +21,7 @@ A extensão usa o SDK oficial `@owlbear-rodeo/sdk` (versão 3.1.0). O estado do 
 
 Quando a página é aberta fora de uma sala do Owlbear Rodeo, funciona como prévia e salva o estado em `localStorage` deste navegador.
 
-Os efeitos de disparo são sintetizados localmente com Web Audio API e só começam após uma interação do usuário. Não há arquivos de áudio remotos.
+Os ícones das oito armas são SVGs originais do projeto, armazenados localmente em `assets/weapons/`, com viewBox e dimensões intrínsecas padronizados (160 × 80). Os efeitos de disparo são sintetizados localmente com Web Audio API e só começam após uma interação do usuário. Não há arquivos de áudio remotos.
 
 ## Regras
 
@@ -44,4 +44,4 @@ Requer Node.js 18 ou superior. Execute:
 
 `npm test`
 
-Os testes cobrem capacidades, persistência independente por arma, disparos individuais, disparada atômica, recarga seletiva e normalização dos dados.
+Os testes cobrem capacidades, persistência independente por arma, disparos individuais, disparada atômica, recarga seletiva, normalização dos dados e integridade dos SVGs. O fluxo do GitHub Actions também instala Chromium e verifica o alinhamento dos cartões, carregamento dos ícones, rolagem das 50 munições e dimensões dos botões em viewports de 280, 320, 360 e 440 px.
