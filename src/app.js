@@ -1,5 +1,6 @@
 import {
   WEAPONS,
+  applyQueuedOperations,
   canBurst,
   consumeBurst,
   consumeRound,
@@ -35,7 +36,8 @@ let storageMode = "local";
 let saveQueue = Promise.resolve();
 let lastSavedJSON = "";
 let isReloadAnimating = false;
-let localInteractionVersion = 0;
+let isConnectingOwlbear = false;
+let pendingLocalOperations = [];
 
 const AMMO_SVGS = {
   pistol: `<path d="M12 2.5c-3.7 4-5.5 7-5.5 10.2 0 3.3 2.4 5.4 5.5 5.4s5.5-2.1 5.5-5.4C17.5 9.5 15.7 6.5 12 2.5Z"/><path d="M7 15.3h10v4.2H7Z"/>`,
@@ -137,9 +139,9 @@ function persistState() {
   return saveQueue;
 }
 
-function updateState(nextState, message) {
+function updateState(nextState, message, operation = null) {
   state = normalizeState(nextState);
-  localInteractionVersion += 1;
+  if (isConnectingOwlbear && operation) pendingLocalOperations.push(operation);
   render();
   persistState();
   if (message) announce(message);
@@ -147,7 +149,7 @@ function updateState(nextState, message) {
 
 function selectWeaponFromButton(weaponId) {
   if (weaponId === state.selectedWeapon) return;
-  updateState(selectWeapon(state, weaponId));
+  updateState(selectWeapon(state, weaponId), null, { type: "select", weaponId });
 }
 
 function handleAmmoClick(event) {
@@ -159,7 +161,9 @@ function handleAmmoClick(event) {
   if (remainingAmmo(next, weapon.id) === remainingAmmo(state, weapon.id)) return;
 
   playShot();
-  updateState(next, `Disparo. ${remainingAmmo(next, weapon.id)} munições restantes.`);
+  updateState(next, `Disparo. ${remainingAmmo(next, weapon.id)} munições restantes.`, {
+    type: "consume", weaponId: weapon.id, index,
+  });
   const firedSlot = elements.ammoTray.querySelector(`[data-ammo-index="${index}"]`);
   firedSlot?.classList.add("just-fired");
 }
@@ -170,7 +174,9 @@ function handleBurst() {
 
   const next = consumeBurst(state, weapon.id);
   playBurst();
-  updateState(next, `Disparada: 10 munições consumidas. ${remainingAmmo(next, weapon.id)} restantes.`);
+  updateState(next, `Disparada: 10 munições consumidas. ${remainingAmmo(next, weapon.id)} restantes.`, {
+    type: "burst", weaponId: weapon.id,
+  });
   elements.ammoTray.classList.remove("is-bursting");
   void elements.ammoTray.offsetWidth;
   elements.ammoTray.classList.add("is-bursting");
@@ -183,7 +189,7 @@ function handleReload() {
 
   isReloadAnimating = true;
   const next = reloadWeapon(state, weapon.id);
-  updateState(next, `${weapon.name} recarregada.`);
+  updateState(next, `${weapon.name} recarregada.`, { type: "reload", weaponId: weapon.id });
   elements.ammoTray.classList.remove("is-reloading");
   void elements.ammoTray.offsetWidth;
   elements.ammoTray.classList.add("is-reloading");
@@ -217,24 +223,29 @@ function restoreLocalState() {
 }
 
 async function connectOwlbear() {
-  const interactionVersionAtStart = localInteractionVersion;
+  const localStateAtConnectStart = normalizeState(state);
+  isConnectingOwlbear = true;
+  pendingLocalOperations = [];
   try {
     const sdk = await import(SDK_URL);
     const candidate = sdk.default ?? sdk;
-    if (!candidate?.isAvailable) return false;
+    if (!candidate?.isAvailable) {
+      isConnectingOwlbear = false;
+      pendingLocalOperations = [];
+      return false;
+    }
 
     await new Promise((resolve) => candidate.onReady(resolve));
     const playerId = candidate.player.id || await candidate.player.getId();
     const metadata = await candidate.player.getMetadata();
     const storedState = metadata?.[METADATA_KEY];
-    const changedWhileConnecting = localInteractionVersion !== interactionVersionAtStart;
+    const queuedOperations = [...pendingLocalOperations];
 
     obr = candidate;
-    // If the player used the panel while the SDK was still connecting, preserve
-    // those clicks instead of replacing them with the older metadata snapshot.
-    state = storedState && !changedWhileConnecting
-      ? normalizeState(storedState)
-      : normalizeState(state);
+    // Start from the player's cloud state, then replay only the clicks made while
+    // that state was loading. This preserves other weapons' remote ammunition too.
+    state = storedState ? normalizeState(storedState) : localStateAtConnectStart;
+    state = applyQueuedOperations(state, queuedOperations);
     lastSavedJSON = JSON.stringify(state);
     setStorageStatus("obr");
 
@@ -251,13 +262,16 @@ async function connectOwlbear() {
       render();
     });
 
-    // Seed a new player metadata entry, or persist any interaction performed while
-    // the SDK was loading. The queued writer serializes this with subsequent clicks.
-    if (!storedState || changedWhileConnecting) await persistState();
+    isConnectingOwlbear = false;
+    pendingLocalOperations = [];
+    // Seed new metadata or persist any queued actions, serialized with future clicks.
+    if (!storedState || queuedOperations.length > 0) await persistState();
 
     console.info(`Arsenal conectado ao Owlbear Rodeo para o jogador ${playerId}.`);
     return true;
   } catch (error) {
+    isConnectingOwlbear = false;
+    pendingLocalOperations = [];
     console.warn("SDK do Owlbear indisponível; usando armazenamento local.", error);
     return false;
   }
