@@ -128,7 +128,7 @@ try {
     await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "11");
     assert.equal(await page.locator('[data-ammo-index="3"]').isDisabled(), true,
       `Largura ${width}px: disparo individual não apagou a munição`);
-    assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), "pistol-fire.wav",
+    assert.equal(await page.evaluate(() => window.__playedWeaponSounds.at(-1)), "pistol-fire.ogg",
       `Largura ${width}px: o disparo da pistola precisa tocar o arquivo próprio`);
 
     // A sound playback failure must not prevent the ammunition action or local state update.
