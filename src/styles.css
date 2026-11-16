@@ -258,11 +258,14 @@ button:focus-visible, .ammo-tray:focus-visible { outline: 2px solid var(--accent
   }
 
   .weapon-svg {
-    width: 42px;
+    width: 100%;
+    max-width: 42px;
     height: 31px;
   }
 
   .weapon-name {
+    width: auto;
+    flex: 1 1 0;
     min-width: 0;
     display: -webkit-box;
     overflow: hidden;
