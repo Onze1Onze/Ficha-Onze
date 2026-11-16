@@ -45,3 +45,14 @@ Requer Node.js 18 ou superior. Execute:
 `npm test`
 
 Os testes cobrem capacidades, persistência independente por arma, disparos individuais, disparada atômica, recarga seletiva, normalização dos dados e integridade dos SVGs. O fluxo do GitHub Actions também instala Chromium e verifica o alinhamento dos cartões, carregamento dos ícones, rolagem das 50 munições e dimensões dos botões em viewports de 280, 320, 360 e 440 px.
+
+## Auditoria e origem dos ícones
+
+Os oito desenhos em `assets/weapons/` foram criados especificamente para este projeto. A página Weapon SVG da Magnific foi consultada como referência estética, mas os arquivos editáveis da plataforma não foram copiados: as regras da Magnific proíbem redistribuir SVGs originais ou modificados em repositórios/coleções e impõem condições específicas para elementos visuais interativos em apps. Consulte os direitos de uso antes de incorporar recursos da plataforma.
+
+A auditoria automática inclui:
+- Testes de lógica para capacidades, operações inválidas e estado inicial.
+- Integridade dos oito SVGs, viewBox 160 × 80, geometria e ausência de dependências externas.
+- Testes de navegador em 280, 320, 360 e 440 px para alinhamento, limites dos ícones/nomes, rolagem, disparos, rajada, recarga e falha de áudio.
+- Simulação de sincronização lenta do Owlbear para garantir que cliques durante o carregamento sejam reaplicados sem apagar munição remota de outras armas.
+- Verificação HTTP dos arquivos hospedados e do manifesto.
