@@ -49,6 +49,13 @@ try {
       contentType: "text/javascript",
       body: "export default { isAvailable: false };",
     }));
+    // Simulate browsers where Web Audio is unavailable: a shot must still consume ammunition.
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "AudioContext", {
+        configurable: true,
+        value: class { constructor() { throw new Error("Audio disabled for regression test"); } },
+      });
+    });
     await page.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
     await page.waitForFunction(() => document.querySelectorAll(".weapon-card").length === 8);
 
@@ -100,8 +107,47 @@ try {
       assert.ok(button.height >= 40, `Largura ${width}px: botão de ação baixo demais`);
     }
 
+    // Local preview must start with a complete magazine, even when the Owlbear SDK is absent.
+    assert.equal(await page.locator(".ammo-slot").count(), 12, `Largura ${width}px: carregador inicial vazio`);
+    await page.locator('[data-ammo-index="3"]').click();
+    await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "11");
+    assert.equal(await page.locator('[data-ammo-index="3"]').isDisabled(), true,
+      `Largura ${width}px: disparo individual não apagou a munição`);
+
+    // Audio initialization intentionally throws above; ammunition must nevertheless be consumed.
+    await page.locator("#reload-button").click();
+    await page.waitForFunction(() =>
+      document.querySelector("#ammo-remaining").textContent === "12" &&
+      !document.querySelector("#ammo-tray").classList.contains("is-reloading")
+    );
+
+    await page.locator('[data-weapon="revolver"]').click();
+    assert.equal(await page.locator(".ammo-slot").count(), 6, `Largura ${width}px: capacidade do revólver`);
+    await page.locator('[data-ammo-index="2"]').click();
+    await page.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "5");
+    await page.locator('[data-weapon="pistol"]').click();
+    assert.equal(await page.locator("#ammo-remaining").textContent(), "12",
+      `Largura ${width}px: munição da pistola não foi preservada`);
+    await page.locator('[data-weapon="revolver"]').click();
+    assert.equal(await page.locator("#ammo-remaining").textContent(), "5",
+      `Largura ${width}px: munição do revólver não foi preservada`);
+
     await page.locator('[data-weapon="machinegun"]').click();
     await page.waitForFunction(() => document.querySelectorAll(".ammo-slot").length === 50);
+    for (const expected of ["40", "30", "20", "10", "0"]) {
+      await page.locator("#burst-button").click();
+      await page.waitForFunction((value) => document.querySelector("#ammo-remaining").textContent === value, expected);
+    }
+    assert.equal(await page.locator("#burst-button").isDisabled(), true,
+      `Largura ${width}px: Disparada continua ativa com menos de dez balas`);
+    await page.locator("#burst-button").evaluate((button) => button.click());
+    assert.equal(await page.locator("#ammo-remaining").textContent(), "0",
+      `Largura ${width}px: Disparada consumiu munição mesmo desabilitada`);
+    await page.locator("#reload-button").click();
+    await page.waitForFunction(() =>
+      document.querySelector("#ammo-remaining").textContent === "50" &&
+      !document.querySelector("#ammo-tray").classList.contains("is-reloading")
+    );
     const ammo = await page.evaluate(() => {
       const tray = document.querySelector("#ammo-tray");
       const slots = [...tray.querySelectorAll(".ammo-slot")].map((el) => {
@@ -127,7 +173,70 @@ try {
     console.log(`Layout OK: viewport ${width}px, oito armas alinhadas, 50 munições e controles visíveis.`);
     await page.close();
   }
-} finally {
+
+  // Simulate the Owlbear metadata arriving after the user has already clicked.
+  const syncPage = await browser.newPage({ viewport: { width: 360, height: 820 }, deviceScaleFactor: 2 });
+  await syncPage.route("https://esm.sh/**", (route) => route.fulfill({
+    status: 200,
+    contentType: "text/javascript",
+    body: `
+      const makeAmmo = (capacity) => ({ spent: Array(capacity).fill(false) });
+      const remote = {
+        version: 1,
+        selectedWeapon: "pistol",
+        ammo: {
+          pistol: makeAmmo(12),
+          revolver: makeAmmo(6),
+          machinegun: makeAmmo(50),
+          "assault-rifle": makeAmmo(30),
+          shotgun: makeAmmo(6),
+          smg: makeAmmo(20),
+          sniper: makeAmmo(1),
+          "hunting-rifle": makeAmmo(4)
+        }
+      };
+      remote.ammo.revolver.spent[2] = true;
+      let onPlayerChange;
+      const player = {
+        id: "sync-regression-player",
+        metadata: {},
+        async getMetadata() {
+          await new Promise((resolve) => setTimeout(resolve, 900));
+          return { "com.onze1.ficha-onze.weapon-ammo": remote };
+        },
+        async setMetadata(update) {
+          player.metadata = { ...player.metadata, ...update };
+          window.__savedArsenal = update["com.onze1.ficha-onze.weapon-ammo"];
+          onPlayerChange?.(player);
+        },
+        onChange(callback) {
+          onPlayerChange = callback;
+          return () => {};
+        }
+      };
+      export default {
+        isAvailable: true,
+        onReady(callback) { setTimeout(callback, 0); },
+        player
+      };
+    `,
+  }));
+  await syncPage.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
+  await syncPage.waitForFunction(() => document.querySelectorAll(".weapon-card").length === 8);
+  await syncPage.locator('[data-ammo-index="0"]').click();
+  await syncPage.waitForFunction(() => document.querySelector("#ammo-remaining").textContent === "11");
+  await syncPage.waitForFunction(() => window.__savedArsenal !== undefined, { timeout: 5000 });
+  const synced = await syncPage.evaluate(() => ({
+    label: document.querySelector("#sync-label").textContent,
+    pistolSpent: window.__savedArsenal.ammo.pistol.spent,
+    revolverSpent: window.__savedArsenal.ammo.revolver.spent,
+  }));
+  assert.equal(synced.label, "OBR • SYNC");
+  assert.equal(synced.pistolSpent[0], true, "O clique anterior à conexão precisa ser reaplicado");
+  assert.equal(synced.revolverSpent[2], true, "A munição remota de outra arma precisa ser preservada");
+  await syncPage.close();
+  console.log("Sync race OK: clique local reaplicado sem apagar munição remota de outras armas.");
+ } finally {
   if (browser) await browser.close();
   await new Promise((resolveClose) => server.close(resolveClose));
 }
