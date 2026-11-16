@@ -1,0 +1,67 @@
+name: Validate Arsenal Extension
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test ammunition logic
+        run: npm test
+
+      - name: Verify hosted extension resources
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from "node:assert/strict";
+
+          const manifestUrl = "https://raw.githubusercontent.com/Onze1Onze/Ficha-Onze/main/manifest.json";
+          const sdkUrl = "https://esm.sh/@owlbear-rodeo/sdk@3.1.0";
+
+          async function checkedFetch(url, expectedType) {
+            const response = await fetch(url, { redirect: "follow" });
+            assert.equal(response.status, 200, `HTTP ${response.status}: ${url}`);
+            if (expectedType) {
+              const type = response.headers.get("content-type") ?? "";
+              assert.ok(type.includes(expectedType), `Unexpected content-type ${type}: ${url}`);
+            }
+            console.log(`OK ${response.status} ${url}`);
+            return response;
+          }
+
+          const manifestResponse = await checkedFetch(manifestUrl, "json");
+          const manifest = await manifestResponse.json();
+          assert.equal(manifest.manifest_version, 1);
+          assert.ok(manifest.action?.popover);
+
+          await checkedFetch(manifest.action.icon, "image/svg+xml");
+          const popoverResponse = await checkedFetch(manifest.action.popover, "text/html");
+          const html = await popoverResponse.text();
+
+          const localAssets = [
+            ...[...html.matchAll(/(?:src|href)="(\.\/[^"]+)"/g)].map((match) => match[1]),
+            "./src/weapons.js",
+            "./src/sound.js"
+          ];
+          for (const asset of new Set(localAssets)) {
+            const url = new URL(asset, manifest.action.popover).href;
+            await checkedFetch(url);
+          }
+
+          await checkedFetch(sdkUrl, "javascript");
+          console.log("Hosted resources and SDK endpoint verified.");
+          NODE
