@@ -11,8 +11,8 @@ import {
   reloadWeapon,
   selectWeapon,
 } from "./weapons.js?v=audiofix-20261116-3";
-import { AMMO_SVGS } from "./ammunition.js?v=audiofix-20261116-2";
-import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js?v=audiofix-20261116-2";
+import { AMMO_SVGS } from "./ammunition.js?v=audiofix-20261116-3";
+import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js?v=audiofix-20261116-3";
 
 const METADATA_KEY = "com.onze1.ficha-onze.weapon-ammo";
 const LOCAL_STORAGE_KEY = "ficha-onze:weapon-ammo:v1";
