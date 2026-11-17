@@ -239,6 +239,11 @@ try {
     await page.waitForFunction(() => document.querySelectorAll(".ammo-slot").length === 50);
     for (const expected of ["40", "30", "20", "10", "0"]) {
       await page.locator("#burst-button").click();
+      assert.equal(
+        await page.evaluate(() => window.__playedWeaponSounds.at(-1)),
+        "machinegun-fire.ogg",
+        "Disparada deve usar o som real da arma selecionada"
+      );
       await page.waitForFunction((value) => document.querySelector("#ammo-remaining").textContent === value, expected);
     }
     assert.equal(await page.locator("#burst-button").isDisabled(), true,
@@ -302,6 +307,58 @@ try {
     console.log(`Layout OK: viewport ${width}px, oito armas alinhadas, 50 munições e controles visíveis.`);
     await page.close();
   }
+
+  // Web Audio may exist before its file buffers finish decoding. In that window,
+  // the app must still play the mapped local file instead of a synthesized substitute.
+  const pendingDecodePage = await browser.newPage({ viewport: { width: 360, height: 820 } });
+  await pendingDecodePage.route("https://esm.sh/**", (route) => route.fulfill({
+    status: 200,
+    contentType: "text/javascript",
+    body: "export default { isAvailable: false };",
+  }));
+  await pendingDecodePage.addInitScript(() => {
+    class DelayedAudioContext {
+      constructor() {
+        this.state = "running";
+        this.currentTime = 0;
+        this.sampleRate = 44100;
+        this.destination = {};
+      }
+      decodeAudioData() {
+        return new Promise((resolve) => setTimeout(() => resolve({ duration: 0.2 }), 5000));
+      }
+    }
+    Object.defineProperty(window, "AudioContext", {
+      configurable: true,
+      value: DelayedAudioContext,
+    });
+    window.__playedPendingDecodeSounds = [];
+    HTMLMediaElement.prototype.load = function () {};
+    HTMLMediaElement.prototype.play = function () {
+      const source = this.currentSrc || this.src;
+      window.__playedPendingDecodeSounds.push(new URL(source).pathname.split("/").pop());
+      return Promise.resolve();
+    };
+  });
+  await pendingDecodePage.goto("http://127.0.0.1:4179/", { waitUntil: "networkidle" });
+  await pendingDecodePage.waitForFunction(() => document.querySelectorAll(".weapon-card").length === 8);
+  const pendingDecodeMappings = [
+    ["pistol", "assault-rifle-fire.ogg"],
+    ["revolver", "machinegun-fire.ogg"],
+    ["hunting-rifle", "assault-rifle-fire.ogg"],
+    ["smg", "machinegun-fire.ogg"],
+  ];
+  for (const [weaponId, expectedFile] of pendingDecodeMappings) {
+    await pendingDecodePage.locator(`[data-weapon="${weaponId}"]`).click();
+    await pendingDecodePage.locator('[data-ammo-index="0"]').click();
+    assert.equal(
+      await pendingDecodePage.evaluate(() => window.__playedPendingDecodeSounds.at(-1)),
+      expectedFile,
+      `${weaponId}: o som mapeado precisa tocar mesmo antes do decode Web Audio terminar`
+    );
+  }
+  await pendingDecodePage.close();
+  console.log("Audio preload race OK: o arquivo mapeado toca mesmo com Web Audio ainda decodificando.");
 
   // Simulate the Owlbear metadata arriving after the user has already clicked.
   const syncPage = await browser.newPage({ viewport: { width: 360, height: 820 }, deviceScaleFactor: 2 });
