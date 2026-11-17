@@ -51,6 +51,18 @@ test("todos os 16 arquivos locais existem e têm cabeçalhos de áudio válidos"
   }
 });
 
+test("o navegador recebe URLs versionadas para não reutilizar módulos e sons antigos", async () => {
+  const indexHtml = await readFile(resolve(process.cwd(), "index.html"), "utf8");
+  const appSource = await readFile(resolve(process.cwd(), "src/app.js"), "utf8");
+  const manifest = JSON.parse(await readFile(resolve(process.cwd(), "manifest.json"), "utf8"));
+
+  assert.match(indexHtml, /src="\.\/src\/app\.js\?v=[^"]+"/);
+  assert.match(indexHtml, /href="\.\/src\/styles\.css\?v=[^"]+"/);
+  assert.match(appSource, /from "\.\/sound\.js\?v=[^"]+"/);
+  assert.equal(manifest.version, "1.0.1");
+  assert.match(manifest.action.popover, /\?v=audiofix-/);
+});
+
 test("todos os caminhos de áudio são locais ao projeto", async () => {
   for (const sounds of Object.values(WEAPON_AUDIO)) {
     for (const filename of [sounds.fire, sounds.reload]) {
