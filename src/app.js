@@ -10,7 +10,7 @@ import {
   remainingAmmo,
   reloadWeapon,
   selectWeapon,
-} from "./weapons.js?v=audiofix-20261116-2";
+} from "./weapons.js?v=audiofix-20261116-3";
 import { AMMO_SVGS } from "./ammunition.js?v=audiofix-20261116-2";
 import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js?v=audiofix-20261116-2";
 
