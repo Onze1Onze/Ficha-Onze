@@ -1,1 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="160" height="80" viewBox="0 0 160 80"><g fill="#9AAA93"><path d="M9 34h31l11 7-3 8H17L9 43z"/><path d="M42 31h75l8 7-4 11H45l-8-8z"/><path d="M113 34h33l5 4-2 4h-37z"/><path d="M53 28h58v4H53z"/><path d="M51 47h24l-2 9H55z"/><path d="M61 55h18l-5 17H63z"/><path d="M83 48h19l5 8H82z"/></g><g fill="none" stroke="#182019" stroke-width="3" stroke-linecap="square"><path d="M14 40h27M53 36h55M119 38h28M61 60l-1 8M91 50v5"/></g><path fill="#9AAA93" d="M56 24h56v4H56z"/></svg>
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160" height="80" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+	 viewBox="0 0 800 300" xml:space="preserve">
+<g stroke="#9AAA93" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+
+	<!-- cano -->
+	<line x1="346" y1="104" x2="772" y2="104" stroke-width="14"/>
+	<!-- massa de mira -->
+	<path d="M748,98 V80 H762 V98" fill="#9AAA93"/>
+
+	<!-- tubo do carregador (dois trechos, passando pela telha) -->
+	<line x1="346" y1="132" x2="414" y2="132"/>
+	<line x1="548" y1="132" x2="694" y2="132"/>
+	<!-- tampa do tubo / abraçadeira do cano -->
+	<rect x="686" y="96" width="22" height="44" rx="6" fill="#9AAA93"/>
+
+	<!-- telha / pump (transparente) -->
+	<rect x="414" y="114" width="134" height="46" rx="12" fill="none"/>
+	<!-- ranhuras da telha -->
+	<line x1="448" y1="126" x2="448" y2="148" stroke-width="8"/>
+	<line x1="478" y1="126" x2="478" y2="148" stroke-width="8"/>
+	<line x1="508" y1="126" x2="508" y2="148" stroke-width="8"/>
+
+	<!-- receptor (transparente) -->
+	<rect x="206" y="86" width="140" height="68" rx="14" fill="none"/>
+	<!-- janela de ejeção -->
+	<rect x="252" y="104" width="64" height="20" rx="6" fill="#9AAA93"/>
+	<!-- alça de mira traseira -->
+	<path d="M218,86 V72 H240 V86" fill="#9AAA93"/>
+
+	<!-- coronha (transparente) -->
+	<path d="M210,96 L100,104 Q70,108 64,138 L56,190 Q54,204 70,202 L210,158 Z" fill="none"/>
+	<!-- soleira da coronha -->
+	<path d="M64,134 L56,196" stroke-width="16"/>
+
+	<!-- guarda-mato (transparente) + gatilho -->
+	<path d="M254,154 V182 Q254,196 268,196 H306 V154" fill="none"/>
+	<path d="M282,154 V176" stroke-width="10"/>
+</g>
+</svg>
