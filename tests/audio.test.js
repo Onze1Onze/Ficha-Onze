@@ -59,7 +59,7 @@ test("o navegador recebe URLs versionadas para não reutilizar módulos e sons a
   assert.match(indexHtml, /src="\.\/src\/app\.js\?v=[^"]+"/);
   assert.match(indexHtml, /href="\.\/src\/styles\.css\?v=[^"]+"/);
   assert.match(appSource, /from "\.\/sound\.js\?v=[^"]+"/);
-  assert.equal(manifest.version, "1.0.1");
+  assert.equal(manifest.version, "1.0.2");
   assert.match(manifest.action.popover, /\?v=audiofix-/);
 });
 
