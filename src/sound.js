@@ -1,14 +1,22 @@
 const SOUND_BASE = new URL("../assets/audio/weapons/", import.meta.url);
 
 export const WEAPON_AUDIO = Object.freeze({
-  pistol: Object.freeze({ fire: "pistol-fire.wav", reload: "pistol-reload.ogg" }),
-  revolver: Object.freeze({ fire: "revolver-fire.mp3", reload: "revolver-reload.wav" }),
+  pistol: Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "pistol-reload.ogg" }),
+  revolver: Object.freeze({ fire: "machinegun-fire.ogg", reload: "revolver-reload.wav" }),
   machinegun: Object.freeze({ fire: "machinegun-fire.ogg", reload: "machinegun-reload.ogg" }),
   "assault-rifle": Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "assault-rifle-reload.ogg" }),
   shotgun: Object.freeze({ fire: "shotgun-fire.ogg", reload: "shotgun-reload.ogg" }),
-  smg: Object.freeze({ fire: "smg-fire.ogg", reload: "smg-reload.ogg" }),
+  smg: Object.freeze({ fire: "machinegun-fire.ogg", reload: "smg-reload.ogg" }),
   sniper: Object.freeze({ fire: "sniper-fire.ogg", reload: "sniper-reload.ogg" }),
-  "hunting-rifle": Object.freeze({ fire: "hunting-rifle-fire.ogg", reload: "hunting-rifle-reload.ogg" }),
+  "hunting-rifle": Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "hunting-rifle-reload.ogg" }),
+});
+
+// Keep synthesized fallbacks aligned with the weapon sound reused by each alias.
+const FIRE_FALLBACK_WEAPON = Object.freeze({
+  pistol: "assault-rifle",
+  revolver: "machinegun",
+  smg: "machinegun",
+  "hunting-rifle": "assault-rifle",
 });
 
 const decodedBuffers = new Map();
@@ -240,7 +248,8 @@ function playLocalFile(weaponId, kind, fallback) {
 }
 
 export function playWeaponShot(weaponId) {
-  return playLocalFile(weaponId, "fire", () => synthesizeShot(weaponId));
+  const fallbackWeaponId = FIRE_FALLBACK_WEAPON[weaponId] ?? weaponId;
+  return playLocalFile(weaponId, "fire", () => synthesizeShot(fallbackWeaponId));
 }
 
 export function playWeaponReload(weaponId) {
