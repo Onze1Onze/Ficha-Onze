@@ -349,7 +349,7 @@ try {
     ["smg", "machinegun-fire.ogg"],
   ];
   for (const [weaponId, expectedFile] of pendingDecodeMappings) {
-    await pendingDecodePage.locator(`[data-weapon="${weaponId}"]`).click();
+    await pendingDecodePage.locator(`.weapon-card[data-weapon="${weaponId}"]`).click();
     await pendingDecodePage.locator('[data-ammo-index="0"]').click();
     assert.equal(
       await pendingDecodePage.evaluate(() => window.__playedPendingDecodeSounds.at(-1)),
