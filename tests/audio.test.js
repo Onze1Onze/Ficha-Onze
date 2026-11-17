@@ -14,7 +14,7 @@ test("cada uma das oito armas tem um som de disparo e outro de recarga", () => {
 
   const allFiles = Object.values(WEAPON_AUDIO).flatMap(({ fire, reload }) => [fire, reload]);
   assert.equal(allFiles.length, 16);
-  assert.equal(new Set(allFiles).size, 16, "Cada evento deve ter seu próprio arquivo");
+  assert.equal(new Set(allFiles).size, 12, "Os disparos compartilhados devem usar os mesmos arquivos");
   for (const pair of Object.values(WEAPON_AUDIO)) {
     assert.ok(pair.fire && pair.reload);
     assert.notEqual(pair.fire, pair.reload);
@@ -22,7 +22,12 @@ test("cada uma das oito armas tem um som de disparo e outro de recarga", () => {
 });
 
 test("todos os 16 arquivos locais existem e têm cabeçalhos de áudio válidos", async () => {
-  const expectedFiles = Object.values(WEAPON_AUDIO).flatMap(({ fire, reload }) => [fire, reload]).sort();
+  // Four original shot clips remain available as unused assets for future mappings.
+  const retainedOriginalShots = ["pistol-fire.wav", "revolver-fire.mp3", "smg-fire.ogg", "hunting-rifle-fire.ogg"];
+  const expectedFiles = [...new Set([
+    ...Object.values(WEAPON_AUDIO).flatMap(({ fire, reload }) => [fire, reload]),
+    ...retainedOriginalShots,
+  ])].sort();
   const actualFiles = (await readdir(audioDirectory)).sort();
   assert.deepEqual(actualFiles, expectedFiles, "A pasta deve conter somente os 16 arquivos mapeados");
 
@@ -58,8 +63,19 @@ test("todos os caminhos de áudio são locais ao projeto", async () => {
 });
 
 
-test("pistola mantém WAV e revólver usa o MP3 anexado do Pixabay", () => {
-  assert.equal(WEAPON_AUDIO.pistol.fire, "pistol-fire.wav");
-  assert.equal(WEAPON_AUDIO.revolver.fire, "revolver-fire.mp3");
+test("pistola e fuzil de caça reutilizam o disparo do fuzil de assalto", () => {
+  assert.equal(WEAPON_AUDIO.pistol.fire, "assault-rifle-fire.ogg");
+  assert.equal(WEAPON_AUDIO["hunting-rifle"].fire, "assault-rifle-fire.ogg");
+});
+
+test("revólver e submetralhadora reutilizam o disparo da metralhadora", () => {
+  assert.equal(WEAPON_AUDIO.revolver.fire, "machinegun-fire.ogg");
+  assert.equal(WEAPON_AUDIO.smg.fire, "machinegun-fire.ogg");
+});
+
+test("os sons de recarga continuam exclusivos de cada arma", () => {
+  const reloadFiles = Object.values(WEAPON_AUDIO).map(({ reload }) => reload);
+  assert.equal(new Set(reloadFiles).size, 8);
+  assert.equal(WEAPON_AUDIO.pistol.reload, "pistol-reload.ogg");
   assert.equal(WEAPON_AUDIO.revolver.reload, "revolver-reload.wav");
 });
