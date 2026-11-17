@@ -274,14 +274,14 @@ try {
 
     if (width === 360) {
       const audioPairs = [
-        ["pistol", "pistol-fire.wav", "pistol-reload.ogg"],
-        ["revolver", "revolver-fire.mp3", "revolver-reload.wav"],
+        ["pistol", "assault-rifle-fire.ogg", "pistol-reload.ogg"],
+        ["revolver", "machinegun-fire.ogg", "revolver-reload.wav"],
         ["machinegun", "machinegun-fire.ogg", "machinegun-reload.ogg"],
         ["assault-rifle", "assault-rifle-fire.ogg", "assault-rifle-reload.ogg"],
         ["shotgun", "shotgun-fire.ogg", "shotgun-reload.ogg"],
-        ["smg", "smg-fire.ogg", "smg-reload.ogg"],
+        ["smg", "machinegun-fire.ogg", "smg-reload.ogg"],
         ["sniper", "sniper-fire.ogg", "sniper-reload.ogg"],
-        ["hunting-rifle", "hunting-rifle-fire.ogg", "hunting-rifle-reload.ogg"],
+        ["hunting-rifle", "assault-rifle-fire.ogg", "hunting-rifle-reload.ogg"],
       ];
       for (const [weaponId, expectedFire, expectedReload] of audioPairs) {
         await page.locator(`[data-weapon="${weaponId}"]`).click();
