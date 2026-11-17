@@ -1,5 +1,5 @@
 const SOUND_BASE = new URL("../assets/audio/weapons/", import.meta.url);
-const AUDIO_REVISION = "audiofix-20261116-2";
+const AUDIO_REVISION = "audiofix-20261116-3";
 
 export const WEAPON_AUDIO = Object.freeze({
   pistol: Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "pistol-reload.ogg" }),
@@ -52,7 +52,7 @@ function getAudioKey(weaponId, kind) {
 function prepareHtmlAudioPool(key, filename) {
   if (typeof Audio === "undefined" || htmlAudioPools.has(key)) return;
   const pool = [];
-  for (let i = 0; i < 2; i += 1) {
+  for (let i = 0; i < 12; i += 1) {
     const audio = new Audio();
     audio.preload = "auto";
     audio.volume = 1;
@@ -274,7 +274,7 @@ function synthesizeBurstFallback() {
   }
 }
 
-/** Plays ten copies of the selected weapon's actual shot when its file is decoded. */
+/** Plays ten copies of the selected weapon's actual shot. */
 export function playBurst(weaponId = "machinegun") {
   const context = resumeContext();
   const key = getAudioKey(weaponId, "fire");
@@ -299,8 +299,16 @@ export function playBurst(weaponId = "machinegun") {
     }
   }
 
-  // The fallback still plays the selected weapon's mapped sound first.
-  if (playWeaponShot(weaponId)) return true;
+  // If Web Audio has not decoded the file yet, use ten HTMLAudio players
+  // from the same mapped local file. This preserves the exact weapon sound
+  // during the preload/decode window instead of silently changing its identity.
+  const filename = WEAPON_AUDIO[weaponId]?.fire;
+  if (filename && htmlAudioPools.has(filename)) {
+    for (let shot = 0; shot < 10; shot += 1) {
+      window.setTimeout(() => playHtmlAudio(filename, () => {}), shot * 75);
+    }
+    return true;
+  }
   synthesizeBurstFallback();
   return false;
 }
