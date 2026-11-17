@@ -10,9 +10,9 @@ import {
   remainingAmmo,
   reloadWeapon,
   selectWeapon,
-} from "./weapons.js";
-import { AMMO_SVGS } from "./ammunition.js";
-import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js";
+} from "./weapons.js?v=audiofix-20261116-2";
+import { AMMO_SVGS } from "./ammunition.js?v=audiofix-20261116-2";
+import { playBurst, playWeaponReload, playWeaponShot, preloadWeaponAudio } from "./sound.js?v=audiofix-20261116-2";
 
 const METADATA_KEY = "com.onze1.ficha-onze.weapon-ammo";
 const LOCAL_STORAGE_KEY = "ficha-onze:weapon-ammo:v1";
@@ -188,7 +188,7 @@ function handleBurst() {
   if (!canBurst(state, weapon.id)) return;
 
   const next = consumeBurst(state, weapon.id);
-  playBurst();
+  playBurst(weapon.id);
   elements.burstButton.classList.remove("is-animating");
   void elements.burstButton.offsetWidth;
   elements.burstButton.classList.add("is-animating");
