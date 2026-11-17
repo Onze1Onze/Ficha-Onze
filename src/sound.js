@@ -1,4 +1,5 @@
 const SOUND_BASE = new URL("../assets/audio/weapons/", import.meta.url);
+const AUDIO_REVISION = "audiofix-20261116-2";
 
 export const WEAPON_AUDIO = Object.freeze({
   pistol: Object.freeze({ fire: "assault-rifle-fire.ogg", reload: "pistol-reload.ogg" }),
@@ -39,11 +40,13 @@ function getAudioContext() {
 }
 
 function assetUrl(filename) {
-  return new URL(filename, SOUND_BASE).href;
+  const url = new URL(filename, SOUND_BASE);
+  url.searchParams.set("v", AUDIO_REVISION);
+  return url.href;
 }
 
 function getAudioKey(weaponId, kind) {
-  return `${weaponId}:${kind}`;
+  return WEAPON_AUDIO[weaponId]?.[kind] ?? `${weaponId}:${kind}`;
 }
 
 function prepareHtmlAudioPool(key, filename) {
@@ -69,26 +72,25 @@ export function preloadWeaponAudio() {
   if (preloadPromise) return preloadPromise;
 
   const context = getAudioContext();
-  const entries = Object.entries(WEAPON_AUDIO).flatMap(([weaponId, sounds]) =>
-    Object.entries(sounds).map(([kind, filename]) => ({
-      weaponId, kind, filename, key: getAudioKey(weaponId, kind),
-    }))
-  );
+  const filenames = [...new Set(
+    Object.values(WEAPON_AUDIO).flatMap((sounds) => Object.values(sounds))
+  )];
 
-  for (const entry of entries) prepareHtmlAudioPool(entry.key, entry.filename);
+  // Aliases that use the same weapon sound share one HTML player pool and one buffer.
+  for (const filename of filenames) prepareHtmlAudioPool(filename, filename);
 
   if (!context || typeof fetch !== "function") {
     preloadPromise = Promise.resolve(false);
     return preloadPromise;
   }
 
-  preloadPromise = Promise.all(entries.map(async ({ key, filename }) => {
+  preloadPromise = Promise.all(filenames.map(async (filename) => {
     try {
       const response = await fetch(assetUrl(filename), { cache: "force-cache" });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const bytes = await response.arrayBuffer();
       const decoded = await context.decodeAudioData(bytes.slice(0));
-      decodedBuffers.set(key, decoded);
+      decodedBuffers.set(filename, decoded);
       return true;
     } catch (error) {
       console.warn(`Não foi possível decodificar ${filename}; o reprodutor HTML será usado.`, error);
@@ -227,21 +229,13 @@ function playLocalFile(weaponId, kind, fallback) {
     return false;
   }
 
-  // If decoded, the source starts immediately in the trusted pointer/touch event.
+  // Prefer the decoded file. While decoding is pending (or unavailable), use the
+  // already-preloaded HTMLAudio player instead of replacing the requested sound
+  // with a generic synthesized effect.
   const buffer = decodedBuffers.get(key);
   if (buffer && playDecodedBuffer(key, buffer)) return true;
 
-  // If Web Audio exists, trigger the synthesized fallback immediately inside the
-  // trusted tap/click. This avoids losing the mobile audio-unlock gesture while a
-  // file is still decoding in the background.
-  if (getAudioContext()) {
-    fallback();
-    return false;
-  }
-
-  // Older embedded browsers without Web Audio use the preloaded HTMLAudio pool.
-  const played = playHtmlAudio(key, fallback);
-  if (played) return true;
+  if (playHtmlAudio(key, fallback)) return true;
 
   fallback();
   return false;
@@ -256,13 +250,9 @@ export function playWeaponReload(weaponId) {
   return playLocalFile(weaponId, "reload", synthesizeReload);
 }
 
-/** Keeps the quick multi-shot cue for DISPARADA while using a resumed context. */
-export function playBurst() {
+function synthesizeBurstFallback() {
   const context = resumeContext();
-  if (!context) {
-    synthesizeShot("machinegun");
-    return;
-  }
+  if (!context) return;
 
   try {
     const startAt = context.currentTime;
@@ -280,15 +270,48 @@ export function playBurst() {
       oscillator.stop(startAt + offset + 0.055);
     }
   } catch (error) {
-    console.warn("Não foi possível reproduzir a rajada.", error);
-    synthesizeShot("machinegun");
+    console.warn("Não foi possível reproduzir a rajada sintetizada.", error);
   }
 }
 
+/** Plays ten copies of the selected weapon's actual shot when its file is decoded. */
+export function playBurst(weaponId = "machinegun") {
+  const context = resumeContext();
+  const key = getAudioKey(weaponId, "fire");
+  const buffer = decodedBuffers.get(key);
+
+  if (context && buffer) {
+    try {
+      const startAt = context.currentTime + 0.015;
+      for (let shot = 0; shot < 10; shot += 1) {
+        const offset = shot * 0.075;
+        const source = context.createBufferSource();
+        const gain = context.createGain();
+        source.buffer = buffer;
+        gain.gain.setValueAtTime(0.92, startAt + offset);
+        source.connect(gain);
+        gain.connect(context.destination);
+        source.start(startAt + offset);
+      }
+      return true;
+    } catch (error) {
+      console.warn("Não foi possível reproduzir a rajada com o arquivo da arma.", error);
+    }
+  }
+
+  // The fallback still plays the selected weapon's mapped sound first.
+  if (playWeaponShot(weaponId)) return true;
+  synthesizeBurstFallback();
+  return false;
+}
+
 export function getAudioDiagnostics() {
+  const expectedFiles = new Set(
+    Object.values(WEAPON_AUDIO).flatMap((sounds) => Object.values(sounds))
+  );
   return {
     decodedBuffers: decodedBuffers.size,
-    expectedBuffers: Object.values(WEAPON_AUDIO).reduce((total, sounds) => total + Object.keys(sounds).length, 0),
+    expectedBuffers: expectedFiles.size,
     contextState: audioContext?.state ?? "unavailable",
   };
 }
